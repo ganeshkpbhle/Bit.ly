@@ -1,0 +1,15 @@
+.card{
+    background-color: rgb(228, 212, 212);
+    min-width: 500px;
+}
+.card-header{
+    color: red;
+}
+.card-body{
+    color: rgb(252, 243, 243);
+}
+.custom-img{
+    margin: 0 auto;
+    background-color: rgb(218, 208, 208);
+    border-radius: 28px;
+}

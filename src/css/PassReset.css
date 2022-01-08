@@ -1,0 +1,13 @@
+.text-head{
+    font-size: 20px;
+    font-family:'Varela Round', sans-serif;
+}
+.bg-white{
+    background-color: whitesmoke;
+}
+.text-success{
+    font-size: 15px;
+    font-family:'Varela Round', sans-serif;
+    color: green;
+    margin: 0 auto;
+}
