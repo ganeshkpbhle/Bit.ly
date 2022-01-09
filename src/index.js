@@ -4,9 +4,12 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { Auth } from './context/Auth';
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Auth>
+      <App />
+    </Auth>
   </React.StrictMode>,
   document.getElementById('root')
 );

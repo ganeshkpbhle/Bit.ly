@@ -8,13 +8,15 @@ import GoogleButton from 'react-google-button';
 function Login({ children }) {
     const navigate = useNavigate();
     const { register, handleSubmit, formState: { errors, dirtyFields }, trigger } = useForm();
-    const { logIn, User, setUser, googleSignIn } = useAuth();
+    const { logIn, setUser, googleSignIn } = useAuth();
     const [Err, setErr] = useState("");
     const Submit = async (data) => {
         try {
             await logIn(data.email, data.passwd)
                 .then((data) => {
                     const user = data?.user;
+                    localStorage.clear();
+                    localStorage.setItem('data',JSON.stringify(user));
                     setUser(user);
                     navigate("/home");
                 });
@@ -28,6 +30,8 @@ function Login({ children }) {
             await googleSignIn()
                 .then((data) => {
                     const user = data?.user;
+                    localStorage.clear();
+                    localStorage.setItem('data',JSON.stringify(user));
                     setUser(user);
                     navigate("/home");
                 });

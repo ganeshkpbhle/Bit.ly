@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate,NavLink } from 'react-router-dom';
 import Svg from "./Svg"
 import { } from "../css/Nav.css";
 import { useAuth } from '../context/Auth';
@@ -14,32 +14,39 @@ function Nav({ children }) {
     const [sidebar, setSidebar] = useState(false);
     const Side = () => {
         setSidebar(!sidebar);
-        console.log(sidebar);
     };
     const SideElements = [
         {
             title: "Home",
             path: '/home',
             cName: 'nav-text',
-            icon: <RiIcon.RiHome2Line size={'35px'} />
+            icon: <RiIcon.RiHome2Line size={'35px'} />,
+            active:"act",
+            inactive:"inact"
         },
         {
             title: "Shorturl",
-            path: '/short',
+            path: '/home/short',
             cName: 'nav-text',
-            icon: <BiIcon.BiCodeCurly size={'35px'} />
+            icon: <BiIcon.BiCodeCurly size={'35px'} />,
+            active:"act",
+            inactive:"inact"
         },
         {
             title: "History",
-            path: '/list',
+            path: '/home/list',
             cName: 'nav-text',
-            icon: <MdIcon.MdHistoryToggleOff size={'35px'} />
+            icon: <MdIcon.MdHistoryToggleOff size={'35px'} />,
+            active:"act",
+            inactive:"inact"
         },
         {
             title: "Profile",
-            path: '/edit',
+            path: '/home/edit',
             cName: 'nav-text',
-            icon: <CgIcon.CgProfile size={'35px'} />
+            icon: <CgIcon.CgProfile size={'35px'} />,
+            active:"act",
+            inactive:"inact"
         }
     ];
     const handleLogOut = async () => {
@@ -47,6 +54,7 @@ function Nav({ children }) {
             await logOut()
                 .then(() => {
                     console.log("logged out");
+                    localStorage.clear();
                     setUser({});
                     navigate("/login");
                 });
@@ -81,10 +89,10 @@ function Nav({ children }) {
                                 SideElements.map((item, index) => {
                                     return (
                                         <li key={index} className={item.cName}>
-                                            <Link to={item.path}>
+                                            <NavLink to={item.path}>
                                                 {item.icon}
                                                 <span>{item.title}</span>
-                                            </Link>
+                                            </NavLink>
                                         </li>
                                     )
                                 })

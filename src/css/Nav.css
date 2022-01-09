@@ -68,3 +68,9 @@ span{
     color: rgb(197, 135, 124);
     font-size: 40px;
 }
+.act{
+    border-bottom: 1px solid blue;
+}
+.inact{
+    border-bottom: none;
+}
