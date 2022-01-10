@@ -16,7 +16,7 @@ function Login({ children }) {
                 .then((data) => {
                     const user = data?.user;
                     localStorage.clear();
-                    localStorage.setItem('data',JSON.stringify(user));
+                    localStorage.setItem('data', JSON.stringify(user));
                     setUser(user);
                     navigate("/home");
                 });
@@ -31,7 +31,7 @@ function Login({ children }) {
                 .then((data) => {
                     const user = data?.user;
                     localStorage.clear();
-                    localStorage.setItem('data',JSON.stringify(user));
+                    localStorage.setItem('data', JSON.stringify(user));
                     setUser(user);
                     navigate("/home");
                 });
@@ -40,7 +40,7 @@ function Login({ children }) {
         }
     };
     return (
-        <div className='container mt-5 shadow mt-5 py-3 px-3 rounded'>
+        <div className='container shadow mt-5 py-3 px-3 rounded'>
             <div className="row p-5">
                 <div className='col-xl-12'>
                     <img className='image' src={logo} />
@@ -57,7 +57,7 @@ function Login({ children }) {
                                 {...register("email", {
                                     required: "Email is required!",
                                     pattern: {
-                                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                        value: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i,
                                         message: "Invalid Email!"
                                     }
                                 })}

@@ -7,6 +7,7 @@ import * as BiIcon from 'react-icons/bi';
 import * as RiIcon from 'react-icons/ri';
 import * as MdIcon from 'react-icons/md';
 import * as CgIcon from 'react-icons/cg';
+import * as FiIcon from 'react-icons/fi';
 import { IconContext } from 'react-icons';
 function Nav({ children }) {
     const { logOut, User, setUser } = useAuth();
@@ -18,7 +19,7 @@ function Nav({ children }) {
     const SideElements = [
         {
             title: "Home",
-            path: '/home',
+            path: '/home/dash',
             cName: 'nav-text',
             icon: <RiIcon.RiHome2Line size={'35px'} />,
             active:"act",
@@ -75,7 +76,7 @@ function Nav({ children }) {
                             <p className='icon'>Bit.ly</p>
                         </div>
                         <div className='d-flex bd-highlight'>
-                            <button className='btn btn-danger' id='logout' onClick={handleLogOut}>Log out</button>
+                            <button className='btn btn-danger' id='logout' onClick={handleLogOut}><FiIcon.FiLogOut size={'30px'}/> &emsp;Log out</button>
                         </div>
                     </div>
                     <nav className={sidebar ? 'nav-menu active' : 'nav-menu'}>
@@ -89,7 +90,7 @@ function Nav({ children }) {
                                 SideElements.map((item, index) => {
                                     return (
                                         <li key={index} className={item.cName}>
-                                            <NavLink to={item.path}>
+                                            <NavLink to={item.path} className={({isActive})=>isActive?item.active||(item?.flg):item.inactive}>
                                                 {item.icon}
                                                 <span>{item.title}</span>
                                             </NavLink>

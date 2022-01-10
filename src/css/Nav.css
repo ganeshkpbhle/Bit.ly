@@ -69,8 +69,8 @@ span{
     font-size: 40px;
 }
 .act{
-    border-bottom: 1px solid blue;
+    background-color: #1a83ff ;
 }
 .inact{
-    border-bottom: none;
+   background-color: none;
 }
