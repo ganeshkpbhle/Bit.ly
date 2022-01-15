@@ -1,29 +1,43 @@
 import "../css/Register.css";
 import reg from "../assets/img/reg.png";
 import { useForm } from 'react-hook-form';
-import { Link,useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/Auth';
 import { useState } from "react";
+import { dB } from "../config/firbaseconfig";
+import { BeatLoader } from "react-spinners";
 function Reg() {
-    const { register, handleSubmit, formState: { errors, dirtyFields }, trigger } = useForm();
-    const { signUp,verifyEmail,user, setUser, googleSignIn } = useAuth();
+    const { register, handleSubmit, formState: { errors, dirtyFields }, trigger,reset } = useForm();
+    const { signUp, User, setUser } = useAuth();
+    const [Flg, setFlg] = useState(false);
     const [Err, setErr] = useState("");
-    const navigate=useNavigate();
-    const [sent,setSent]=useState("");
-    const Submit = async(data,e) => {
+    const navigate = useNavigate();
+    const Submit = async (data, e) => {
         e.preventDefault();
-            await signUp(data.email,data.passwd).then((userData)=>{
-                verifyMsg(userData,1);
-            })
-            .catch((err)=>{
+        setFlg(true);
+        await signUp(data.email, data.passwd).then((userData) => {
+            const Prof = {
+                firstName: data.firstName,
+                lastName: data.lastName,
+                email: data.email,
+                mobile: data.mobile,
+                uid:userData?.user.uid,
+                urls:[]
+            };
+            dB.push(
+                Prof
+                ,err=>{
+                    setErr(err?.message);
+                }
+            ).then(()=>{
+                reset();
+                setFlg(false);
+                navigate("/login");
+            });
+        })
+            .catch((err) => {
                 setErr(err?.message);
             });
-    };
-    const verifyMsg= async(userData,flg)=>{
-        await verifyEmail(userData).then(()=>{
-            setSent("Verification email has sent");
-        });
-        (flg===1)?navigate("/login"):navigate("/home");
     };
     return (
         <div className="container shadow-sm mt-5 py-3 px-3 rounded reg-bg">
@@ -131,7 +145,6 @@ function Reg() {
                                 </div>
                             </div>
                         </div>
-                        {sent.length!==0&&<p className={`p-2 text-success`}>{sent}</p>}
                         <div className="row p-2">
                             <div className="col-xl-12">
                                 <p className="link">Already Have a Account ? <Link to="/login">Log In</Link></p>
@@ -142,6 +155,11 @@ function Reg() {
                         <img className="img-fluid mt-2" src={reg} alt="Oops Cannot load!" />
                     </div>
                 </div>
+                {Flg &&
+                    <div className="row p-3">
+                        <BeatLoader loading size={25} />
+                    </div>
+                }
             </form>
         </div>
     );

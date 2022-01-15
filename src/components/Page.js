@@ -34,7 +34,7 @@ const Page = () => {
           }}>
             Register
           </button></div>
-          <div className="p-2 bd-highlight"><button className="btn btn-dark" onClick={()=>{
+          <div className="p-2 bd-highlight"><button className="btn btn-dark login" onClick={() => {
             navigate("/login");
           }}>Login</button></div>
         </div>

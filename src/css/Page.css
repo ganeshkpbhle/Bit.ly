@@ -2,7 +2,6 @@
     font-family: 'Secular One', sans-serif;
     font-size: 64px;
 }
-
 .img-fluid {
     margin: 0 auto;
     min-width: 600px;
@@ -66,8 +65,8 @@
 .block2 {
     margin-top: 30px;
 }
-.btn-dark:hover{
-    background-color: white;
+.login:focus,.login:hover{
+    background-color: wheat;
     color: black;
 }
 .btn{

@@ -5,16 +5,17 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/Auth';
 import GoogleButton from 'react-google-button';
+import { dB } from "../config/firbaseconfig";
 function Login({ children }) {
     const navigate = useNavigate();
-    const { register, handleSubmit, formState: { errors, dirtyFields }, trigger } = useForm();
-    const { logIn, setUser, googleSignIn } = useAuth();
+    const { register, handleSubmit, formState: { errors}, trigger } = useForm();
+    const { logIn, setUser, googleSignIn,checkProf } = useAuth();
     const [Err, setErr] = useState("");
     const Submit = async (data) => {
         try {
             await logIn(data.email, data.passwd)
-                .then((data) => {
-                    const user = data?.user;
+                .then((datafromGl) => {
+                    const user = datafromGl?.user;
                     localStorage.clear();
                     localStorage.setItem('data', JSON.stringify(user));
                     setUser(user);
@@ -29,10 +30,26 @@ function Login({ children }) {
         try {
             await googleSignIn()
                 .then((data) => {
-                    const user = data?.user;
+                    const user = JSON.stringify(data?.user);
                     localStorage.clear();
-                    localStorage.setItem('data', JSON.stringify(user));
-                    setUser(user);
+                    if(!checkProf(data?.user.uid)){
+                        const [firstName,lastName]=(user.slice(user.indexOf('"displayName":')+15,user.indexOf(',"isAnonymous":')-1)).split(" ");
+                        const Prof = {
+                            firstName,
+                            lastName,
+                            email:data?.user.email,
+                            mobile:"",
+                            uid:data?.user.uid,
+                            urls:[]
+                        };
+                        dB.push(Prof
+                            ,err=>{
+                                setErr(err?.message);
+                            }
+                        );
+                    }
+                    localStorage.setItem('data', user);
+                    setUser(JSON.parse(user));
                     navigate("/home");
                 });
         } catch (err) {

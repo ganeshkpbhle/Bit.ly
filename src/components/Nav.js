@@ -10,7 +10,7 @@ import * as CgIcon from 'react-icons/cg';
 import * as FiIcon from 'react-icons/fi';
 import { IconContext } from 'react-icons';
 function Nav({ children }) {
-    const { logOut, User, setUser } = useAuth();
+    const { logOut, User, setUser,setflg } = useAuth();
     const navigate = useNavigate();
     const [sidebar, setSidebar] = useState(false);
     const Side = () => {
@@ -57,6 +57,7 @@ function Nav({ children }) {
                     console.log("logged out");
                     localStorage.clear();
                     setUser({});
+                    setflg(false);
                     navigate("/login");
                 });
         } catch (err) {
