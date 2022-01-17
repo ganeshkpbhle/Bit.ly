@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./App.css";
 import { Page } from "./components/Page";
 import { Reg } from './components/Register';
@@ -10,7 +10,6 @@ import { useAuth } from './context/Auth';
 import { MainPage, Edit, Short, List } from "./components/Home";
 import Extract from './components/Extract';
 function App() {
-  const { User } = useAuth();
   return (
     <div className="App">
       <BrowserRouter>
@@ -21,7 +20,7 @@ function App() {
           <Route path='/login' exact element={<Login />} />
           <Route path='/reset' exact element={<PassReset />} />
           <Route path='/home' exact element={<Vfc />}>
-            <Route path='/home/' exact element={<Navigate to='/home/dash'/>}/>
+            <Route path='/home/' exact element={<Navigate to='/home/dash' />} />
             <Route path='/home/dash' exact element={<MainPage />} />
             <Route path='/home/edit' exact element={<Edit />} />
             <Route path='/home/list' exact element={<List />} />

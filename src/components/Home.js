@@ -16,38 +16,66 @@ function Home({ children }) {
     )
 };
 export function MainPage({ children }) {
-    const { userCred,checkProf,flg } = useAuth();
-    const User=JSON.parse(localStorage["data"]);
+    const { flg, verifyEmail, User, addUser, getUser } = useAuth();
+    const ustr = localStorage["data"];
+    const user = JSON.parse(ustr)?.user;
+    const [Vfy, setVfy] = useState(false);
     useEffect(() => {
-        let methd = userCred(User.email)
-            .then((data) => {
-                for (const key in Object.keys(data)) {
-                    if (data[key] === 'google.com') {
-                        checkProf(User?.uid);
-                    }
-                }
-            });
-        return methd;
+        const rslt =[];
+        if (rslt?.length === 0) {
+            const [firstName, lastName] = (ustr.slice(ustr.indexOf('"displayName":') + 15, ustr.indexOf(',"isAnonymous":') - 1)).split(" ");
+            const Prof = {
+                firstName,
+                lastName,
+                email: user?.email,
+                mobile: "",
+                uid: user?.uid,
+                urls: []
+            };
+            addUser(Prof)
+                .then(response => {
+                    let tmp = JSON.parse(localStorage["data"]);
+                    tmp["id"] = response?.data.id;
+                    localStorage.setItem('data', JSON.stringify(tmp));
+                    return;
+                });
+        }
+        else {
+            let tmp = JSON.parse(localStorage["data"]);
+            tmp["id"] = rslt[0]?.id;
+            localStorage.setItem('data', JSON.stringify(tmp));
+        }
     }, []);
     return (<>
-        {!User?.emailVerified &&
+        {!user?.emailVerified &&
             <div className='d-flex flex-row bd-highlight justify-content-end'>
                 <div className='p-2 bd-highlight'>
                     <div className="card text-center">
                         <div className="card-body">
-                            <h5 className="card-title p-2">Your Email Has not Verified Yet !</h5>
-                            <button className="btn btn-primary">Send Verification email</button>
+                            {!Vfy && <>
+                                <h5 className="card-title p-2">Your Email Has not Verified Yet !</h5>
+                                <button className="btn btn-primary" onClick={() => {
+                                    if (!User?.user) {
+                                        verifyEmail(User)
+                                            .then(() => {
+                                                setVfy(true);
+                                            });
+                                    }
+                                }
+                                }>Send Verification email</button>
+                            </>}
+                            {Vfy && <p className='text-success p-4'>Verification Email has been sent check email !</p>}
                         </div>
                     </div>
                 </div>
             </div>
         }
-        {   flg &&
+        {flg &&
             <div className='d-flex flex-row bd-highlight justify-content-end'>
                 <div className='p-2 bd-highlight'>
                     <div className="card text-center">
                         <div className='card-header'>
-                            <RiIcons.RiErrorWarningFill size={32}/>
+                            <RiIcons.RiErrorWarningFill size={32} />
                         </div>
                         <div className="card-body">
                             <h5 className="card-title p-2">Please Complete Your Profile from the left panel</h5>
@@ -62,14 +90,21 @@ export function Short({ children }) {
     const { register, handleSubmit, formState: { errors }, trigger, reset } = useForm();
     const [Rslt, setRslt] = useState("");
     const [Cpy, setCpy] = useState(false);
+    const str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
+    const RandGen = () => {
+
+    };
     const Submit = async (data) => {
         setRslt(data?.url);
-        console.log(data);
         reset();
+
     };
     const Clip = () => {
         navigator.clipboard.writeText(Rslt);
         setCpy(true);
+    };
+    const Urls = () => {
+
     };
     return (
         <div className='container-fluid shadow mt-5 py-3 px-3 rounded'>

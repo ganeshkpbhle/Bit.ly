@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "@svgr/cli": "^6.1.2",
+    "axios": "^0.24.0",
     "firebase": "^9.6.2",
     "react-icons": "^4.3.1",
     "react-native": "^0.66.4",

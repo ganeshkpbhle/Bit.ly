@@ -3,7 +3,7 @@ import React from 'react'
 function Extract() {
     return (
         <div>
-            Extraction Component
+            Extract Component
         </div>
     )
 }

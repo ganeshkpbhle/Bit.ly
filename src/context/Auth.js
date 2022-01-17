@@ -8,14 +8,15 @@ import {
     signInWithPopup,
     sendPasswordResetEmail,
     sendEmailVerification,
-    fetchSignInMethodsForEmail
+    fetchSignInMethodsForEmail,
+    getAdditionalUserInfo
 } from 'firebase/auth';
-import { auth,dB } from '../config/firbaseconfig';
+import { auth } from '../config/firbaseconfig';
+import http from "../config/http-common";
 const authContext = createContext();
 export function Auth({ children }) {
     const [User, setUser] = useState({});
-    const [Prof,setProf]=useState({});
-    const [flg,setflg]=useState(false);
+    const [flg, setflg] = useState(false);
     const signUp = (email, passwd) => {
         return createUserWithEmailAndPassword(auth, email, passwd);
     };
@@ -30,38 +31,46 @@ export function Auth({ children }) {
         return signInWithPopup(auth, googleAuthProvider);
     };
     const PasswdReset = (email) => {
-        return sendPasswordResetEmail(auth,email);
+        return sendPasswordResetEmail(auth, email);
     };
-    const verifyEmail=(userData)=>{
-        return sendEmailVerification(userData?.user);
+    const verifyEmail = (userData) => {
+        return sendEmailVerification(userData);
     };
-    const userCred=(email)=>{
-        return fetchSignInMethodsForEmail(auth,email);
+    const userCred = (email) => {
+        return fetchSignInMethodsForEmail(auth, email);
     };
-    const checkProf=(param)=>{
-       return dB.on('value',snapshot =>{
-           snapshot.forEach(child=>{
-               if(child.val().uid===param){
-                setflg(child.val().mobile==="");
-                return false;
-               };
-           });
-        });
+    const getUserInfo = (user) => {
+        return getAdditionalUserInfo(user);
+    };
+    const addUser = (data) => {
+        return http.post("https://615e89e13d1491001755a97b.mockapi.io/users", data);
+    };
+    const getUser = (id) => {
+        return http.get(`https://615e89e13d1491001755a97b.mockapi.io/users/${id}`);
+    };
+    const updateUser = (id, data) => {
+        return http.put(`https://615e89e13d1491001755a97b.mockapi.io/users/${id}`, data);
+    };
+    const getUid=(id)=>{
+        return http.get(`https://615e89e13d1491001755a97b.mockapi.io/userId/${id}`);
+    };
+    const putUid=(data)=>{
+        return http.post("https://615e89e13d1491001755a97b.mockapi.io/userId", data);
     };
     useEffect(() => {
         const subsc = onAuthStateChanged(auth, (currUsr) => {
-            if(currUsr){
+            if (currUsr) {
                 setUser(currUsr);
             }
-            else{
+            else {
                 setUser({});
             }
         });
         return () => {
             subsc();
         }
-    }, [])
-    return <authContext.Provider value={{ User, signUp, logIn,setUser, logOut, googleSignIn,PasswdReset,verifyEmail,Prof,setProf,userCred,checkProf,flg,setflg }}>
+    }, []);
+    return <authContext.Provider value={{ User, signUp, logIn, setUser, logOut, googleSignIn, PasswdReset, verifyEmail, userCred, flg, setflg, getUser, addUser, updateUser,getUid,putUid}}>
         {children}
     </authContext.Provider>
 };

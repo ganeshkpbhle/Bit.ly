@@ -23,4 +23,5 @@ const app =Firebase.initializeApp(firebaseConfig);
 // const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const dB=app.database().ref("users");
-export {app,auth,dB};
+const urlsDB=null;
+export {app,auth,dB,urlsDB};

@@ -3,12 +3,11 @@ import reg from "../assets/img/reg.png";
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/Auth';
-import { useState } from "react";
-import { dB } from "../config/firbaseconfig";
+import { useEffect, useState } from "react";
 import { BeatLoader } from "react-spinners";
 function Reg() {
-    const { register, handleSubmit, formState: { errors, dirtyFields }, trigger,reset } = useForm();
-    const { signUp, User, setUser } = useAuth();
+    const { register, handleSubmit, formState: { errors, dirtyFields }, trigger, reset } = useForm();
+    const { signUp, addUser,putUid } = useAuth();
     const [Flg, setFlg] = useState(false);
     const [Err, setErr] = useState("");
     const navigate = useNavigate();
@@ -17,23 +16,19 @@ function Reg() {
         setFlg(true);
         await signUp(data.email, data.passwd).then((userData) => {
             const Prof = {
-                firstName: data.firstName,
-                lastName: data.lastName,
-                email: data.email,
-                mobile: data.mobile,
-                uid:userData?.user.uid,
-                urls:[]
+                "id":userData.user.uid,
+                "firstName": data.firstName,
+                "lastName": data.lastName,
+                "email": data.email,
+                "mobile": data.mobile,
+                "urls": []
             };
-            dB.push(
-                Prof
-                ,err=>{
-                    setErr(err?.message);
-                }
-            ).then(()=>{
-                reset();
-                setFlg(false);
-                navigate("/login");
-            });
+            addUser(Prof)
+                .then(response => {
+                    reset();
+                    setFlg(false);
+                    navigate("/login");
+                });
         })
             .catch((err) => {
                 setErr(err?.message);
