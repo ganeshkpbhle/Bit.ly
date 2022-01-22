@@ -6,10 +6,17 @@ import Login from './components/Login';
 import Vfc from './components/Vfc';
 import PassReset from "./components/PassReset";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from './context/Auth';
 import { MainPage, Edit, Short, List } from "./components/Home";
 import Extract from './components/Extract';
+import http from "./config/http-common";
+import EmailVfc from "./components/EmailVfc";
 function App() {
+  // useEffect(()=>{
+  //   http.get("https://localhost:5001/api/user")
+  //   .then((data)=>{
+  //     console.log(data);
+  //   });
+  // },[]);
   return (
     <div className="App">
       <BrowserRouter>
@@ -26,6 +33,7 @@ function App() {
             <Route path='/home/list' exact element={<List />} />
             <Route path='/home/short' exact element={<Short />} />
           </Route>
+          <Route path='/vfc/:Id' exact element={<EmailVfc />} />
         </Routes>
       </BrowserRouter>
     </div>

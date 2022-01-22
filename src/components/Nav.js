@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate,NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
 import Svg from "./Svg"
 import { } from "../css/Nav.css";
 import { useAuth } from '../context/Auth';
@@ -9,9 +9,34 @@ import * as MdIcon from 'react-icons/md';
 import * as CgIcon from 'react-icons/cg';
 import * as FiIcon from 'react-icons/fi';
 import { IconContext } from 'react-icons';
+import http from "../config/http-common";
 function Nav({ children }) {
-    const { logOut,setUser,setflg} = useAuth();
-    const User=JSON.parse(localStorage['data'])?.user;
+    const { getUserSimple, User, setUser } = useAuth();
+    const [Err, setErr] = useState("");
+    const handleLogOut = () => {
+        navigate("/login");
+        localStorage.clear();
+        setUser({});
+    };
+    const data = (JSON.parse(localStorage["user"]))?.data;
+    const [profilelogo, setProfilelogo] = useState(`https://avatars.dicebear.com/api/initials/${User?.email+User?.id}.svg`);
+    useEffect(() => {
+        if (data?.token) {
+            setTimeout(() => {
+                alert("Session Expired pls login again !");
+                handleLogOut();
+            }, 1800000);
+            getUserSimple(data?.id)
+                .then((response) => {
+                    setProfilelogo(`https://avatars.dicebear.com/api/initials/${response?.data.email+response?.data.id}.svg`);
+                    setUser(response?.data);
+                })
+                .catch((err) => {
+                    setErr("Something went wrong !");
+                    console.log(err?.message);
+                });
+        }
+    }, []);
     const navigate = useNavigate();
     const [sidebar, setSidebar] = useState(false);
     const Side = () => {
@@ -22,48 +47,35 @@ function Nav({ children }) {
             title: "Home",
             path: '/home/dash',
             cName: 'nav-text',
-            icon: <RiIcon.RiHome2Line size={'35px'} />,
-            active:"act",
-            inactive:"inact"
+            icon: <RiIcon.RiHome2Line size={32} />,
+            active: "act",
+            inactive: "inact"
         },
         {
             title: "Shorturl",
             path: '/home/short',
             cName: 'nav-text',
-            icon: <BiIcon.BiCodeCurly size={'35px'} />,
-            active:"act",
-            inactive:"inact"
+            icon: <BiIcon.BiCodeCurly size={32} />,
+            active: "act",
+            inactive: "inact"
         },
         {
             title: "History",
             path: '/home/list',
             cName: 'nav-text',
-            icon: <MdIcon.MdHistoryToggleOff size={'35px'} />,
-            active:"act",
-            inactive:"inact"
+            icon: <MdIcon.MdHistoryToggleOff size={32} />,
+            active: "act",
+            inactive: "inact"
         },
         {
             title: "Profile",
             path: '/home/edit',
             cName: 'nav-text',
-            icon: <CgIcon.CgProfile size={'35px'} />,
-            active:"act",
-            inactive:"inact"
+            icon: <CgIcon.CgProfile size={32} />,
+            active: "act",
+            inactive: "inact"
         }
     ];
-    const handleLogOut = async () => {
-        try {
-            await logOut()
-                .then(() => {
-                    localStorage.clear();
-                    setflg(false);
-                    navigate("/login");
-                });
-        } catch (err) {
-            console.log(err);
-        }
-    };
-    const profilelogo = `https://avatars.dicebear.com/api/initials/${User?.email}.svg`;
     return (<>
         <IconContext.Provider value={{ color: 'blue' }}>
             <div className='container-fluid'>
@@ -76,7 +88,7 @@ function Nav({ children }) {
                             <p className='icon'>Bit.ly</p>
                         </div>
                         <div className='d-flex bd-highlight'>
-                            <button className='btn btn-danger' id='logout' onClick={handleLogOut}><FiIcon.FiLogOut size={'30px'}/> &emsp;Log out</button>
+                            <button className='btn btn-danger' id='logout' onClick={handleLogOut}><FiIcon.FiLogOut size={'30px'} /> &emsp;Log out</button>
                         </div>
                     </div>
                     <nav className={sidebar ? 'nav-menu active' : 'nav-menu'}>
@@ -90,7 +102,7 @@ function Nav({ children }) {
                                 SideElements.map((item, index) => {
                                     return (
                                         <li key={index} className={item.cName}>
-                                            <NavLink to={item.path} className={({isActive})=>isActive?item.active||(item?.flg):item.inactive}>
+                                            <NavLink to={item.path} className={({ isActive }) => isActive ? item.active || (item?.flg) : item.inactive}>
                                                 {item.icon}
                                                 <span>{item.title}</span>
                                             </NavLink>

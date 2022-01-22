@@ -28,3 +28,12 @@
     display: flex;
     justify-content: end;
 }
+.custom-a{
+    padding: 2px;
+}
+.custom-b{
+    text-decoration: none;
+}
+.custom-cont{
+    min-width:max-content;
+}

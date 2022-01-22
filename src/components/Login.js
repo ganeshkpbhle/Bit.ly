@@ -8,20 +8,16 @@ import GoogleButton from 'react-google-button';
 function Login({ children }) {
     const navigate = useNavigate();
     const { register, handleSubmit, formState: { errors }, trigger } = useForm();
-    const { logIn, setUser, googleSignIn } = useAuth();
+    const { logIn, setUser, googleSignIn,getUserSimple  } = useAuth();
     const [Err, setErr] = useState("");
-    const Submit = async (data) => {
-        try {
-            await logIn(data.email, data.passwd)
-                .then((datafromGl) => {
-                    localStorage.clear();
-                    localStorage.setItem('data', JSON.stringify(datafromGl));
-                    setUser(datafromGl);
-                    navigate("/home");
-                });
-        } catch (err) {
-            setErr(err?.message);
-        }
+    const Submit = (data) => {
+        logIn({"Uemail":data.email,"Passwd":data.passwd})
+        .then((response)=>{
+            localStorage.clear();
+            setUser(response?.data);
+            localStorage.setItem('user',JSON.stringify(response));
+            navigate("/home");
+        });
     };
     const handleGoogleLogin = async (e) => {
         e.preventDefault();

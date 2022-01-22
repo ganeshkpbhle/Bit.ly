@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../context/Auth';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import "../css/Home.css";
 import Nav from './Nav';
 import * as RiIcons from 'react-icons/ri';
 import * as FcIcons from 'react-icons/fc';
+import http from "../config/http-common";
+import { BounceLoader } from "react-spinners";
 function Home({ children }) {
     return (
         <div>
@@ -16,69 +18,67 @@ function Home({ children }) {
     )
 };
 export function MainPage({ children }) {
-    const { flg, verifyEmail, User, addUser, getUser } = useAuth();
-    const ustr = localStorage["data"];
-    const user = JSON.parse(ustr)?.user;
+    const { verifyEmail, getUserById, getUserSimple } = useAuth();
+    const ustr = localStorage["user"];
+    const user = JSON.parse(ustr)?.data;
     const [Vfy, setVfy] = useState(false);
+    const [User, setUser] = useState({});
+    const [pflg, setPflg] = useState(false);
     useEffect(() => {
-        const rslt =[];
-        if (rslt?.length === 0) {
-            const [firstName, lastName] = (ustr.slice(ustr.indexOf('"displayName":') + 15, ustr.indexOf(',"isAnonymous":') - 1)).split(" ");
-            const Prof = {
-                firstName,
-                lastName,
-                email: user?.email,
-                mobile: "",
-                uid: user?.uid,
-                urls: []
-            };
-            addUser(Prof)
-                .then(response => {
-                    let tmp = JSON.parse(localStorage["data"]);
-                    tmp["id"] = response?.data.id;
-                    localStorage.setItem('data', JSON.stringify(tmp));
-                    return;
-                });
-        }
-        else {
-            let tmp = JSON.parse(localStorage["data"]);
-            tmp["id"] = rslt[0]?.id;
-            localStorage.setItem('data', JSON.stringify(tmp));
-        }
+        getUserSimple(user.id)
+            .then((response) => {
+                setUser(response?.data);
+                setVfy(false);
+            });
     }, []);
+    const handleRefresh = () => {
+        http.interceptors.request.use(
+            _config => {
+                _config.headers.authorization = `Bearer ${user.token}`;
+                return _config;
+            },
+            error => {
+                return Promise.reject(error);
+            }
+        );
+        getUserSimple(user.id)
+            .then((response) => {
+                setUser(response?.data);
+                setVfy(false);
+            });
+    };
     return (<>
-        {!user?.emailVerified &&
+        {(User?.emailVerified == 0) &&
             <div className='d-flex flex-row bd-highlight justify-content-end'>
                 <div className='p-2 bd-highlight'>
                     <div className="card text-center">
                         <div className="card-body">
                             {!Vfy && <>
-                                <h5 className="card-title p-2">Your Email Has not Verified Yet !</h5>
-                                <button className="btn btn-primary" onClick={() => {
-                                    if (!User?.user) {
-                                        verifyEmail(User)
-                                            .then(() => {
-                                                setVfy(true);
-                                            });
-                                    }
+                                <h5 className="card-title p-2"><RiIcons.RiErrorWarningFill size={32} />Your Email Has not Verified Yet !</h5>
+                                {!pflg &&
+                                    <>
+                                        <button className="btn btn-primary" onClick={() => {
+                                            setPflg(true);
+                                            const vfcDetail = {
+                                                ToMail: User.email,
+                                                Subject: "Verifcation link",
+                                                Body: `<p style='font-size:18px'>To verify your mail ${User.email}</p><br><a style='font-size:15px' href='http://localhost:3000/vfc/${parseInt(user.id)}'>Click here to Verify</a>`
+                                            };
+                                            verifyEmail(vfcDetail)
+                                                .then((result) => {
+                                                    if (result?.data) {
+                                                        setVfy(true);
+                                                        setPflg(false);
+                                                    }
+                                                });
+                                        }
+                                        }>Send Verification email</button>
+                                    </>
                                 }
-                                }>Send Verification email</button>
-                            </>}
-                            {Vfy && <p className='text-success p-4'>Verification Email has been sent check email !</p>}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-        {flg &&
-            <div className='d-flex flex-row bd-highlight justify-content-end'>
-                <div className='p-2 bd-highlight'>
-                    <div className="card text-center">
-                        <div className='card-header'>
-                            <RiIcons.RiErrorWarningFill size={32} />
-                        </div>
-                        <div className="card-body">
-                            <h5 className="card-title p-2">Please Complete Your Profile from the left panel</h5>
+                                {pflg && <BounceLoader loading size={35} />}
+                            </>
+                            }
+                            {Vfy && <><p className='text-success p-3 mx-3'>Verification Email has been sent check email !</p><a className='btn btn-secondary' onClick={handleRefresh}>Refresh</a></>}
                         </div>
                     </div>
                 </div>
@@ -90,21 +90,43 @@ export function Short({ children }) {
     const { register, handleSubmit, formState: { errors }, trigger, reset } = useForm();
     const [Rslt, setRslt] = useState("");
     const [Cpy, setCpy] = useState(false);
-    const str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
+    const { addUrl } = useAuth();
+    const user = (JSON.parse(localStorage["user"]))?.data;
     const RandGen = () => {
-
+        let rslt = "";
+        const strRand = "A345opqMNOPQ6DEFjklBC012mnXYZabcdefghi78rstuvRSTUVWwxyzGHIJKL9";
+        const strLen = strRand.length;
+        for (var i = 0; i < 6; i++) {
+            rslt += strRand.charAt(Math.floor(Math.random() * strLen));
+        }
+        return rslt;
     };
     const Submit = async (data) => {
-        setRslt(data?.url);
+        const UrlId = RandGen();
+        const UserId = user?.id;
+        const date = new Date();
+        const CreatedDate = date.toISOString().slice(0, 19);
+        http.interceptors.request.use(
+            _config => {
+                _config.headers.authorization = `Bearer ${user?.token}`;
+                return _config;
+            },
+            error => {
+                return Promise.reject(error);
+            }
+        );
+        addUrl({ UrlId, "LongUrl": data?.url, UserId, CreatedDate })
+            .then((response) => {
+                setRslt(`bit.ly/${UrlId}`);
+            })
+            .catch((error) => {
+                console.log(error?.message);
+            });
         reset();
-
     };
     const Clip = () => {
         navigator.clipboard.writeText(Rslt);
         setCpy(true);
-    };
-    const Urls = () => {
-
     };
     return (
         <div className='container-fluid shadow mt-5 py-3 px-3 rounded'>
@@ -153,10 +175,93 @@ export function Short({ children }) {
     );
 };
 export function List({ children }) {
-    return (<>List Compnent</>);
+    const { getUrls, delUrl } = useAuth();
+    const [list, setList] = useState([]);
+    const user = (JSON.parse(localStorage["user"]))?.data;
+    const [temp, setTemp] = useState({});
+    useEffect(() => {
+        getUrls(user?.id)
+            .then((response) => {
+                setList(response?.data);
+            });
+    }, []);
+    const handleDelete = async (e) => {
+        http.interceptors.request.use(
+            _config => {
+                _config.headers.authorization = `Bearer ${user?.token}`;
+                return _config;
+            },
+            error => {
+                return Promise.reject(error);
+            }
+        );
+        const Id = e?.target.getAttribute("id");
+        setList(list.filter(element => element.urlId !== Id));
+        delUrl(Id)
+            ?.then((res) => {
+                console.log(res);
+            });
+    };
+    return (<>
+        {
+            /* {list?.length !== 0 &&
+                <div className='container custom-cont'>
+                    <div className='row'>
+                        <div className='col-xl-12'>
+                            {
+                                list.map(item => {
+                                    return (
+                                        <div className="card p-2 my-2 custom-card" key={item.urlId}>
+                                            <div className='card-body'>
+                                                <div className="d-flex flex-row bd-highlight justify-content-around m-0">
+                                                    <div className="px-5 bd-highlight"><Link className='custom-b' to={{ pathname: `/${item.urlId}` }} target="_blank">{"bit.ly/" + item.urlId}</Link></div>
+                                                    <div className="px-5 bd-highlight"><p>{item.createdDate?.replace('T', ' ')}</p></div>
+                                                    <div className="px-5 bd-highlight"><a className='btn btn-danger custom-a'>delete</a></div>
+                                                </div>
+                                            </div>
+                                        </div>);
+                                })
+                            }
+                        </div>
+                    </div>
+                </div>
+            } */
+        }
+        {
+            list?.map(item => {
+                return (
+                    <div className="container custom-cont py-3 px-5 my-3 shadow-sm bg-white rounded" key={item.urlId}>
+                        <div className="row">
+                            <div className="col-xl-4"><Link className='custom-b' to={{ pathname: `/${item.urlId}` }} target="_blank">{"bit.ly/" + item.urlId}</Link></div>
+                            <div className="col-xl-5"><p>{item.createdDate?.replace('T', ' ')}</p></div>
+                            <div className="col-xl-3"><a className='btn btn-danger custom-a' id={item?.urlId} onClick={handleDelete}>delete</a></div>
+                        </div>
+                    </div>
+                );
+            })
+        }
+    </>);
 };
 export function Edit({ children }) {
-    return (<>Edit Component</>);
+    const user = (JSON.parse(localStorage["user"]))?.data;
+    const { getUserById } = useAuth();
+    const [full, setFull] = useState({});
+    useEffect(() => {
+        const mthd = () => {
+            getUserById(user?.id)
+                .then((response) => {
+                    setFull(response?.data);
+                });
+        }
+        return mthd();
+    }, []);
+    return (
+        <>
+            {
+                console.log(full)
+            }
+        </>
+    );
 };
 
 export default Home;

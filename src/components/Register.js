@@ -3,36 +3,53 @@ import reg from "../assets/img/reg.png";
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/Auth';
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BeatLoader } from "react-spinners";
 function Reg() {
     const { register, handleSubmit, formState: { errors, dirtyFields }, trigger, reset } = useForm();
-    const { signUp, addUser,putUid } = useAuth();
+    const { addUser, getUserBymail,signUp } = useAuth();
     const [Flg, setFlg] = useState(false);
     const [Err, setErr] = useState("");
     const navigate = useNavigate();
     const Submit = async (data, e) => {
         e.preventDefault();
         setFlg(true);
-        await signUp(data.email, data.passwd).then((userData) => {
-            const Prof = {
-                "id":userData.user.uid,
-                "firstName": data.firstName,
-                "lastName": data.lastName,
-                "email": data.email,
-                "mobile": data.mobile,
-                "urls": []
-            };
-            addUser(Prof)
-                .then(response => {
-                    reset();
+        setErr("");
+        //await signUp(data.email, data.passwd).then((userData) => {
+            getUserBymail(data.email)
+                .then((response) => {
+                    if (response?.data.message) {
+                        const Prof = {
+                            // "GId": userData?.user.uid,
+                            "GId":"",
+                            "FirstName": data.firstName,
+                            "LastName": data.lastName,
+                            "Mobile": data.mobile,
+                            "Email": data.email,
+                            "EmailVerified": 0,
+                            "SnType": "email/pass",
+                            "Passwd": data.passwd
+                        };
+                        addUser(Prof)
+                            .then(response => {
+                                reset();
+                                setFlg(false);
+                                navigate("/login");
+                            });
+                    }
+                    else {
+                        setFlg(false);
+                        setErr("Email already exists !");
+                    }
+                })
+                .catch((err) => {
                     setFlg(false);
-                    navigate("/login");
+                    setErr("Some thing went wrong!");
                 });
-        })
-            .catch((err) => {
-                setErr(err?.message);
-            });
+        // })
+        //     .catch((err) => {
+        //         setErr(err?.message);
+        //     });
     };
     return (
         <div className="container shadow-sm mt-5 py-3 px-3 rounded reg-bg">
@@ -98,6 +115,8 @@ function Reg() {
                                     required: "MobileNumber is required!"
                                     , minLength: {
                                         value: 10, message: "Mobile number should be 10 digits!"
+                                    }, maxLength: {
+                                        value: 10, message: "Mobile number should be 10 digits!"
                                     }
                                 })}
                                 onKeyUp={() => {
@@ -154,6 +173,11 @@ function Reg() {
                     <div className="row p-3">
                         <BeatLoader loading size={25} />
                     </div>
+                }
+                {Err.length !== 0 &&
+                    <p className="errtext">
+                        {Err}
+                    </p>
                 }
             </form>
         </div>
