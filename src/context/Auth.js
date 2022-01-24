@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import {
     createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
+    //signInWithEmailAndPassword,
+   // signOut,
     onAuthStateChanged,
     GoogleAuthProvider,
     signInWithPopup,
@@ -11,6 +11,7 @@ import {
 import { auth } from '../config/firbaseconfig';
 import http from "../config/http-common";
 const authContext = createContext();
+const {REACT_APP_API_URL,REACT_APP_DICEBEAR,REACT_APP_LOCAL} =process.env;
 export function Auth({ children }) {
     const [User, setUser] = useState({});
     const [flg, setflg] = useState(false);
@@ -40,70 +41,50 @@ export function Auth({ children }) {
     const PasswdReset = (email) => {
         return sendPasswordResetEmail(auth, email);
     };
-    const glSignIn=(email,passwd)=>{
-        return signInWithEmailAndPassword(auth,email,passwd);
-    };
 
     // From here dotnet API begins
     const addUrl = (url) => {
         setHeader();
-        return http.post("https://localhost:7006/api/url", url);
+        return http.post(`${REACT_APP_API_URL}url`, url);
     };
     const verifyEmail = (data) => {
         setHeader();
-        return http.post(`https://localhost:7006/api/verify/Email`, data);
+        return http.post(`${REACT_APP_API_URL}verify/Email`, data);
     };
     const logIn = (data) => {
-        return http.post(`https://localhost:7006/api/user/login`, data);
+        return http.post(`${REACT_APP_API_URL}user/login`, data);
     };
     const getUrlById = (id) => {
         setHeader();
-        return http.get(`https://localhost:7006/api/url/getId/${id}`);
+        return http.get(`${REACT_APP_API_URL}url/getId/${id}`);
     };
     const getUrls = (id) => {
         setHeader();
-        return http.get(`https://localhost:7006/api/url/getlist/${id}`);
+        return http.get(`${REACT_APP_API_URL}url/getlist/${id}`);
     };
     const delUrl = (id) => {
         setHeader();
-        http.delete(`https://localhost:7006/api/url/${id}`);
+        http.delete(`${REACT_APP_API_URL}url/${id}`);
     };
     const addUser = (data) => {
-        return http.post("https://localhost:7006/api/user", data);
-    };
-    const getUserById = (id) => {
-        setHeader();
-        return http.get(`https://localhost:7006/api/user/getId/${id}`);
+        return http.post(`${REACT_APP_API_URL}user`, data);
     };
     const getUserSimple = (id) => {
         setHeader();
-        return http.get(`https://localhost:7006/api/user/getRes/${id}`);
+        return http.get(`${REACT_APP_API_URL}user/getRes/${id}`);
     };
     const getUserBymail = (mail) => {
-        return http.get(`https://localhost:7006/api/user/getEmail/${mail}`);
+        return http.get(`${REACT_APP_API_URL}user/getEmail/${mail}`);
     };
     const updateUser = (id, data) => {
         setHeader();
-        return http.put(`https://localhost:7006/api/user/${id}`, data);
+        return http.put(`${REACT_APP_API_URL}user/${id}`, data);
     };
     const vfcApi=(id)=>{
         setHeader();
-        return http.post("https://localhost:7006/api/verify/post",{Id:id});
+        return http.post(`${REACT_APP_API_URL}verify/post`,{Id:id});
     };
-    useEffect(() => {
-        const subsc = onAuthStateChanged(auth, (currUsr) => {
-            if (currUsr) {
-                setUser(currUsr);
-            }
-            else {
-                setUser({});
-            }
-        });
-        return () => {
-            subsc();
-        }
-    }, []);
-    return <authContext.Provider value={{ User, logIn, setUser, googleSignIn, signUp, PasswdReset, verifyEmail, flg, setflg, getUserById, addUser, updateUser, getUserBymail, addUrl, getUrlById, delUrl, getUrls, getUserSimple,vfcApi }}>
+    return <authContext.Provider value={{ User, logIn, setUser, googleSignIn, signUp, PasswdReset, verifyEmail, flg, setflg, addUser, updateUser, getUserBymail, addUrl, getUrlById, delUrl, getUrls, getUserSimple,vfcApi,REACT_APP_DICEBEAR,REACT_APP_LOCAL }}>
         {children}
     </authContext.Provider>
 };

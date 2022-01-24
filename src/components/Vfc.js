@@ -5,5 +5,4 @@ function Vfc() {
     const localData=localStorage.getItem('user');
     return (!localData)?<Navigate to="/login"/>:<Home/>;
 }
-
 export default Vfc

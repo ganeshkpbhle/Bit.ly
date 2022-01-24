@@ -7,7 +7,6 @@ import "../css/Home.css";
 import Nav from './Nav';
 import * as RiIcons from 'react-icons/ri';
 import * as FcIcons from 'react-icons/fc';
-import http from "../config/http-common";
 import { BounceLoader } from "react-spinners";
 function Home({ children }) {
     return (
@@ -18,29 +17,12 @@ function Home({ children }) {
     )
 };
 export function MainPage({ children }) {
-    const { verifyEmail, getUserById, getUserSimple } = useAuth();
+    const { verifyEmail,getUserSimple,User,setUser,REACT_APP_LOCAL } = useAuth();
     const ustr = localStorage["user"];
     const user = JSON.parse(ustr)?.data;
     const [Vfy, setVfy] = useState(false);
-    const [User, setUser] = useState({});
     const [pflg, setPflg] = useState(false);
-    useEffect(() => {
-        getUserSimple(user.id)
-            .then((response) => {
-                setUser(response?.data);
-                setVfy(false);
-            });
-    }, []);
     const handleRefresh = () => {
-        http.interceptors.request.use(
-            _config => {
-                _config.headers.authorization = `Bearer ${user.token}`;
-                return _config;
-            },
-            error => {
-                return Promise.reject(error);
-            }
-        );
         getUserSimple(user.id)
             .then((response) => {
                 setUser(response?.data);
@@ -48,7 +30,7 @@ export function MainPage({ children }) {
             });
     };
     return (<>
-        {(User?.emailVerified == 0) &&
+        {(User?.emailVerified === 0) &&
             <div className='d-flex flex-row bd-highlight justify-content-end'>
                 <div className='p-2 bd-highlight'>
                     <div className="card text-center">
@@ -62,7 +44,7 @@ export function MainPage({ children }) {
                                             const vfcDetail = {
                                                 ToMail: User.email,
                                                 Subject: "Verifcation link",
-                                                Body: `<p style='font-size:18px'>To verify your mail ${User.email}</p><br><a style='font-size:15px' href='http://localhost:3000/vfc/${parseInt(user.id)}'>Click here to Verify</a>`
+                                                Body: `<p style='font-size:18px'>To verify your mail ${User.email}</p><br><a style='font-size:15px' href='${REACT_APP_LOCAL}vfc/${parseInt(user.id)}'>Click here to Verify Your Email</a>`
                                             };
                                             verifyEmail(vfcDetail)
                                                 .then((result) => {
@@ -78,7 +60,7 @@ export function MainPage({ children }) {
                                 {pflg && <BounceLoader loading size={35} />}
                             </>
                             }
-                            {Vfy && <><p className='text-success p-3 mx-3'>Verification Email has been sent check email !</p><a className='btn btn-secondary' onClick={handleRefresh}>Refresh</a></>}
+                            {Vfy && <><p className='text-success p-3 mx-3'>Verification Email has been sent check email !</p><button className='btn btn-secondary' onClick={handleRefresh}>Refresh</button></>}
                         </div>
                     </div>
                 </div>
@@ -106,16 +88,8 @@ export function Short({ children }) {
         const UserId = user?.id;
         const date = new Date();
         const CreatedDate = date.toISOString().slice(0, 19);
-        http.interceptors.request.use(
-            _config => {
-                _config.headers.authorization = `Bearer ${user?.token}`;
-                return _config;
-            },
-            error => {
-                return Promise.reject(error);
-            }
-        );
-        addUrl({ UrlId, "LongUrl": data?.url, UserId, CreatedDate })
+        const urlparam={ UrlId, "LongUrl": data?.url, UserId, CreatedDate };
+        addUrl(urlparam)
             .then((response) => {
                 setRslt(`bit.ly/${UrlId}`);
             })
@@ -136,7 +110,7 @@ export function Short({ children }) {
                         <input type='text' name='url' placeholder='Enter Your URL Here ...' className='form-control urlBox' {...register("url", {
                             required: "Enter Valid URL !",
                             pattern: {
-                                value: /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/i,
+                                value: /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/i,
                                 message: "Invalid URL !"
                             }
                         })}
@@ -178,23 +152,14 @@ export function List({ children }) {
     const { getUrls, delUrl } = useAuth();
     const [list, setList] = useState([]);
     const user = (JSON.parse(localStorage["user"]))?.data;
-    const [temp, setTemp] = useState({});
     useEffect(() => {
-        getUrls(user?.id)
+       const methd=getUrls(user?.id)
             .then((response) => {
                 setList(response?.data);
             });
-    }, []);
+        return methd;
+    },[]);
     const handleDelete = async (e) => {
-        http.interceptors.request.use(
-            _config => {
-                _config.headers.authorization = `Bearer ${user?.token}`;
-                return _config;
-            },
-            error => {
-                return Promise.reject(error);
-            }
-        );
         const Id = e?.target.getAttribute("id");
         setList(list.filter(element => element.urlId !== Id));
         delUrl(Id)
@@ -234,7 +199,7 @@ export function List({ children }) {
                         <div className="row">
                             <div className="col-xl-4"><Link className='custom-b' to={{ pathname: `/${item.urlId}` }} target="_blank">{"bit.ly/" + item.urlId}</Link></div>
                             <div className="col-xl-5"><p>{item.createdDate?.replace('T', ' ')}</p></div>
-                            <div className="col-xl-3"><a className='btn btn-danger custom-a' id={item?.urlId} onClick={handleDelete}>delete</a></div>
+                            <div className="col-xl-3"><button className='btn btn-danger custom-a' id={item?.urlId} onClick={handleDelete}>delete</button></div>
                         </div>
                     </div>
                 );
@@ -243,22 +208,11 @@ export function List({ children }) {
     </>);
 };
 export function Edit({ children }) {
-    const user = (JSON.parse(localStorage["user"]))?.data;
-    const { getUserById } = useAuth();
-    const [full, setFull] = useState({});
-    useEffect(() => {
-        const mthd = () => {
-            getUserById(user?.id)
-                .then((response) => {
-                    setFull(response?.data);
-                });
-        }
-        return mthd();
-    }, []);
+    //const user = (JSON.parse(localStorage["user"]))?.data;
     return (
         <>
             {
-                console.log(full)
+                
             }
         </>
     );

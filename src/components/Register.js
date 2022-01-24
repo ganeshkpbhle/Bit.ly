@@ -7,7 +7,7 @@ import { useState } from "react";
 import { BeatLoader } from "react-spinners";
 function Reg() {
     const { register, handleSubmit, formState: { errors, dirtyFields }, trigger, reset } = useForm();
-    const { addUser, getUserBymail,signUp } = useAuth();
+    const { addUser, getUserBymail} = useAuth();
     const [Flg, setFlg] = useState(false);
     const [Err, setErr] = useState("");
     const navigate = useNavigate();
@@ -15,13 +15,11 @@ function Reg() {
         e.preventDefault();
         setFlg(true);
         setErr("");
-        //await signUp(data.email, data.passwd).then((userData) => {
             getUserBymail(data.email)
                 .then((response) => {
-                    if (response?.data.message) {
+                    if (response?.data.message===0) {
                         const Prof = {
-                            // "GId": userData?.user.uid,
-                            "GId":"",
+                            "GId":"NOT APPLICABLE",
                             "FirstName": data.firstName,
                             "LastName": data.lastName,
                             "Mobile": data.mobile,
@@ -46,10 +44,6 @@ function Reg() {
                     setFlg(false);
                     setErr("Some thing went wrong!");
                 });
-        // })
-        //     .catch((err) => {
-        //         setErr(err?.message);
-        //     });
     };
     return (
         <div className="container shadow-sm mt-5 py-3 px-3 rounded reg-bg">

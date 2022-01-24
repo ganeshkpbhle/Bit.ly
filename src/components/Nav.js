@@ -9,26 +9,27 @@ import * as MdIcon from 'react-icons/md';
 import * as CgIcon from 'react-icons/cg';
 import * as FiIcon from 'react-icons/fi';
 import { IconContext } from 'react-icons';
-import http from "../config/http-common";
 function Nav({ children }) {
-    const { getUserSimple, User, setUser } = useAuth();
+    const { getUserSimple, User, setUser,REACT_APP_DICEBEAR } = useAuth();
     const [Err, setErr] = useState("");
+    var timeout=null;
     const handleLogOut = () => {
         navigate("/login");
         localStorage.clear();
+        clearTimeout(timeout);
         setUser({});
     };
-    const data = (JSON.parse(localStorage["user"]))?.data;
-    const [profilelogo, setProfilelogo] = useState(`https://avatars.dicebear.com/api/initials/${User?.email+User?.id}.svg`);
+    const [profilelogo, setProfilelogo] = useState(`${REACT_APP_DICEBEAR}${User?.email+User?.id}.svg`);
     useEffect(() => {
+        const data = (JSON.parse(localStorage["user"]))?.data;
         if (data?.token) {
-            setTimeout(() => {
+            timeout=setTimeout(() => {
                 alert("Session Expired pls login again !");
                 handleLogOut();
             }, 1800000);
             getUserSimple(data?.id)
                 .then((response) => {
-                    setProfilelogo(`https://avatars.dicebear.com/api/initials/${response?.data.email+response?.data.id}.svg`);
+                    setProfilelogo(`${REACT_APP_DICEBEAR}${response?.data.email+response?.data.id}.svg`);
                     setUser(response?.data);
                 })
                 .catch((err) => {
@@ -36,7 +37,7 @@ function Nav({ children }) {
                     console.log(err?.message);
                 });
         }
-    }, []);
+    },[]);
     const navigate = useNavigate();
     const [sidebar, setSidebar] = useState(false);
     const Side = () => {

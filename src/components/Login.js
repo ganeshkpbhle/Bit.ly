@@ -5,30 +5,64 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/Auth';
 import GoogleButton from 'react-google-button';
+import { BeatLoader } from "react-spinners";
 function Login({ children }) {
     const navigate = useNavigate();
-    const { register, handleSubmit, formState: { errors }, trigger } = useForm();
-    const { logIn, setUser, googleSignIn,getUserSimple  } = useAuth();
+    const { register, handleSubmit, formState: { errors }, trigger,reset } = useForm();
+    const { logIn, setUser, googleSignIn, getUserBymail, addUser } = useAuth();
     const [Err, setErr] = useState("");
+    const [pflg, setPflg] = useState(false);
     const Submit = (data) => {
-        logIn({"Uemail":data.email,"Passwd":data.passwd})
-        .then((response)=>{
-            localStorage.clear();
-            setUser(response?.data);
-            localStorage.setItem('user',JSON.stringify(response));
-            navigate("/home");
-        });
+        logIn({ "Uemail": data.email, "Passwd": data.passwd })
+            .then((response) => {
+                localStorage.clear();
+                setUser(response?.data);
+                localStorage.setItem('user', JSON.stringify(response));
+                navigate("/home");
+                reset();
+            });
     };
     const handleGoogleLogin = async (e) => {
         e.preventDefault();
         try {
             await googleSignIn()
                 .then((Gldata) => {
-                    const user = JSON.stringify(Gldata?.user);
-                    localStorage.clear();
-                    localStorage.setItem('data', JSON.stringify(Gldata));
-                    setUser(Gldata);
-                    navigate("/home");
+                    setPflg(true);
+                    getUserBymail(Gldata?.user.email)
+                        .then((response) => {
+                            if (response?.data.message === 0) {
+                                const Prof = {
+                                    "GId": Gldata?.user.uid,
+                                    "FirstName": Gldata?.user.displayName,
+                                    "LastName": "",
+                                    "Mobile": "",
+                                    "Email": Gldata?.user.email,
+                                    "EmailVerified": 1,
+                                    "SnType": "Google",
+                                    "Passwd": "$"
+                                };
+                                addUser(Prof)
+                                    .then(() => {
+                                        localStorage.clear();
+                                        setTimeout(() => {
+                                            logIn({ "Uemail": Gldata?.user.email, "Passwd": "$" })
+                                                .then(result => {
+                                                    setPflg(false);
+                                                    setUser(result?.data);
+                                                    localStorage.setItem('user', JSON.stringify(result));
+                                                    navigate("/home");
+                                                });
+                                        }, 500);
+                                    });
+                            }
+                            else {
+                                setUser(response?.data);
+                                setPflg(false);
+                                localStorage.clear();
+                                localStorage.setItem('user', JSON.stringify(response));
+                                navigate("/home");
+                            }
+                        });
                 });
         } catch (err) {
             setErr(err?.message);
@@ -81,11 +115,20 @@ function Login({ children }) {
                         <div className="row p-2">
                             <p className='link'>Don't Have an Account? <Link to="/register"> SignUp </Link></p>
                         </div>
-                        <div className='row p-2'>
-                            <div className='col-xl-12'>
-                                <GoogleButton className='g-btn' type='dark' onClick={handleGoogleLogin} />
+                        {pflg &&
+                            <div className='row p-2 justify-content-start'>
+                                <div className='col'>
+                                    <BeatLoader loading size={35} color='blue' />
+                                </div>
                             </div>
-                        </div>
+                        }
+                        {!pflg &&
+                            <div className='row p-2'>
+                                <div className='col-xl-12'>
+                                    <GoogleButton className='g-btn' type='dark' onClick={handleGoogleLogin} />
+                                </div>
+                            </div>
+                        }
                         <div className='row p-2'>
                             <div className='col-xl-12'>
                                 <p className='link'><Link to='/reset'>Forgot passwd?</Link></p>
