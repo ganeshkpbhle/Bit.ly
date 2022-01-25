@@ -8,6 +8,7 @@ import Nav from './Nav';
 import * as RiIcons from 'react-icons/ri';
 import * as FcIcons from 'react-icons/fc';
 import { BounceLoader } from "react-spinners";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 function Home({ children }) {
     return (
         <div>
@@ -17,11 +18,33 @@ function Home({ children }) {
     )
 };
 export function MainPage({ children }) {
-    const { verifyEmail,getUserSimple,User,setUser,REACT_APP_LOCAL } = useAuth();
+    const { verifyEmail, getUserSimple, User, setUser, REACT_APP_LOCAL } = useAuth();
     const ustr = localStorage["user"];
     const user = JSON.parse(ustr)?.data;
     const [Vfy, setVfy] = useState(false);
     const [pflg, setPflg] = useState(false);
+    const dataFeed = [
+        {
+            "name": "Jan",
+            "Active-Count": 200
+        },
+        {
+            "name": "Feb",
+            "Active-Count": 500
+        },
+        {
+            "name": "Mar",
+            "Active-Count": 300
+        },
+        {
+            "name": "Apr",
+            "Active-Count": 250
+        },
+        {
+            "name": "May",
+            "Active-Count": 500
+        }
+    ];
     const handleRefresh = () => {
         getUserSimple(user.id)
             .then((response) => {
@@ -66,6 +89,19 @@ export function MainPage({ children }) {
                 </div>
             </div>
         }
+        <div className='container'>
+            <div className='row Chart my-5'>
+                <ResponsiveContainer aspect={4 / 1} width={1300}>
+                    <LineChart margin={{ top: 5, right: 0, left: 0, bottom: 5 }} data={dataFeed}>
+                        <XAxis dataKey="name" stroke='#5550bd' />
+                        <YAxis dataKey="Active-Count"/>
+                        <Line type="monotone" dataKey="Active-Count" stroke='blue' />
+                        <Tooltip />
+                        <CartesianGrid stroke='white'/>
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
     </>);
 };
 export function Short({ children }) {
@@ -88,7 +124,7 @@ export function Short({ children }) {
         const UserId = user?.id;
         const date = new Date();
         const CreatedDate = date.toISOString().slice(0, 19);
-        const urlparam={ UrlId, "LongUrl": data?.url, UserId, CreatedDate };
+        const urlparam = { UrlId, "LongUrl": data?.url, UserId, CreatedDate };
         addUrl(urlparam)
             .then((response) => {
                 setRslt(`bit.ly/${UrlId}`);
@@ -153,12 +189,12 @@ export function List({ children }) {
     const [list, setList] = useState([]);
     const user = (JSON.parse(localStorage["user"]))?.data;
     useEffect(() => {
-       const methd=getUrls(user?.id)
+        const methd = getUrls(user?.id)
             .then((response) => {
                 setList(response?.data);
             });
         return methd;
-    },[]);
+    }, []);
     const handleDelete = async (e) => {
         const Id = e?.target.getAttribute("id");
         setList(list.filter(element => element.urlId !== Id));
@@ -212,7 +248,7 @@ export function Edit({ children }) {
     return (
         <>
             {
-                
+
             }
         </>
     );

@@ -1,9 +1,14 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "../css/Page.css";
 import main from "../assets/img/main.jpg";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,Navigate } from 'react-router-dom';
+import Home from "./Home";
 const Page = () => {
   let navigate = useNavigate();
+  useEffect(()=>{
+    const localData=localStorage.getItem('user');
+    (localData)?navigate("/home"):navigate("/");
+  },[]);
   return (
     <div className="container">
       <div className="row topbar">

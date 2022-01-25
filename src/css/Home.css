@@ -37,3 +37,10 @@
 .custom-cont{
     min-width:max-content;
 }
+.Chart{
+    max-width: max-content;
+}
+.Chart svg{
+    max-width: max-content;
+    max-height:max-content;
+}
