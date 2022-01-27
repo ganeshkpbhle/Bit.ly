@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../context/Auth';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 import "../css/Home.css";
 import Nav from './Nav';
 import * as RiIcons from 'react-icons/ri';
 import * as FcIcons from 'react-icons/fc';
 import { BounceLoader } from "react-spinners";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Form } from "react-bootstrap";
 function Home({ children }) {
     return (
         <div>
@@ -18,38 +19,35 @@ function Home({ children }) {
     )
 };
 export function MainPage({ children }) {
-    const { verifyEmail, getUserSimple, User, setUser, REACT_APP_LOCAL } = useAuth();
+    const { verifyEmail, getUserSimple, User, setUser, REACT_APP_LOCAL, ComputeDate } = useAuth();
     const ustr = localStorage["user"];
     const user = JSON.parse(ustr)?.data;
     const [Vfy, setVfy] = useState(false);
     const [pflg, setPflg] = useState(false);
-    const dataFeed = [
-        {
-            "name": "Jan",
-            "Active-Count": 200
-        },
-        {
-            "name": "Feb",
-            "Active-Count": 500
-        },
-        {
-            "name": "Mar",
-            "Active-Count": 300
-        },
-        {
-            "name": "Apr",
-            "Active-Count": 250
-        },
-        {
-            "name": "May",
-            "Active-Count": 500
-        }
-    ];
+    const [dataFeed, setFeed] = useState([]);
+    useEffect(() => {
+        dataFeed.length = 0;
+        ComputeDate({ "Id": user?.id, "Opt": 1 })
+            .then((response) => {
+                response?.data?.forEach(element => {
+                    setFeed(prev => [...prev, element]);
+                });
+            });
+    }, []);
     const handleRefresh = () => {
         getUserSimple(user.id)
             .then((response) => {
                 setUser(response?.data);
                 setVfy(false);
+            });
+    };
+    const handleSelect = (e) => {
+        dataFeed.length = 0;
+        ComputeDate({ "Id": user?.id, "Opt": (e?.target.value==="month")?1:2 })
+            .then((response) => {
+                response?.data?.forEach(element => {
+                    setFeed(prev => [...prev, element]);
+                });
             });
     };
     return (<>
@@ -89,15 +87,23 @@ export function MainPage({ children }) {
                 </div>
             </div>
         }
+        <div className='d-flex flex-row bd-highlight justify-content-end my-2'>
+            <div className='p-2 bd-highlight'>
+                <Form.Select onChange={handleSelect}>
+                    <option value="month">Month</option>
+                    <option value="week">Week</option>
+                </Form.Select>
+            </div>
+        </div>
         <div className='container'>
             <div className='row Chart my-5'>
-                <ResponsiveContainer aspect={4 / 1} width={1300}>
+                <ResponsiveContainer aspect={4 / 1} width={1100}>
                     <LineChart margin={{ top: 5, right: 0, left: 0, bottom: 5 }} data={dataFeed}>
                         <XAxis dataKey="name" stroke='#5550bd' />
-                        <YAxis dataKey="Active-Count"/>
-                        <Line type="monotone" dataKey="Active-Count" stroke='blue' />
+                        <YAxis dataKey="active_Count" />
+                        <Line type="monotone" dataKey="active_Count" stroke='blue' />
                         <Tooltip />
-                        <CartesianGrid stroke='white'/>
+                        <CartesianGrid stroke='white' />
                     </LineChart>
                 </ResponsiveContainer>
             </div>
@@ -244,13 +250,123 @@ export function List({ children }) {
     </>);
 };
 export function Edit({ children }) {
-    //const user = (JSON.parse(localStorage["user"]))?.data;
-    return (
-        <>
-            {
-
+    const { register, handleSubmit, formState: { errors, dirtyFields }, trigger,setValue } = useForm();
+    const { updateUser,User,setUser,getUserSimple} = useAuth();
+    const user=JSON.parse(localStorage['user'])?.data;
+    const [Flg, setFlg] = useState(false);
+    const [Err, setErr] = useState("");
+    const navigate = useNavigate();
+    useEffect(()=>{
+        getUserSimple(user?.id)
+        .then((response)=>{
+            const arr={ 'firstName':response?.data.firstName,'lastName':response?.data.lastName,'email':response?.data.email,'mobile':response?.data.mobile }
+            Object.keys(arr).forEach(element => {
+                setValue(element.toString(),arr[element],{shouldValidate:true});
+            });
+        });
+    },[]);
+    const Submit = async (data,e) => {
+        e.preventDefault();
+        setErr("");
+        updateUser(user?.id,{'Id':user?.id,'FirstName':data.firstName,'LastName':data.lastName,'Email':data.email,'Mobile':data.mobile})
+        .then((response)=>{
+            if(response?.data.update){
+                setFlg(true);
             }
-        </>
+        });
+
+    };
+    return (
+        <div className="container shadow-sm mt-5 py-3 px-3 rounded reg-bg">
+            <form className="Form py-2" onSubmit={handleSubmit(Submit)}>
+                <div className="row p-4">
+                    <div className="col-xl-5">
+                        <div className="form-group my-2 p-1">
+                            <input
+                                className={`form-control field ${errors.firstName ? 'Invalid' : dirtyFields.firstName ? 'valid' : ''}`}
+                                type="text"
+                                name="firstName"
+                                placeholder="First Name..."
+                                {...register("firstName", { required: "First Name is required!" })}
+                                onKeyUp={() => {
+                                    trigger("firstName");
+                                }}
+                            />
+                            {errors.firstName && <p className="errtext">{errors.firstName.message}</p>}
+                        </div>
+                        <div className="form-group my-2 p-1">
+                            <input
+                                className={`form-control field ${errors.lastName ? '' : dirtyFields.lastName ? 'valid' : ''}`}
+                                type="text"
+                                name="lastName"
+                                placeholder="Last Name..."
+                                {...register("lastName")}
+                                onKeyUp={() => {
+                                    trigger("lastName");
+                                }}
+                            />
+                        </div>
+                        <div className="form-group my-2 p-1">
+                            <input
+                                className={`form-control field ${errors.email ? 'Invalid' : dirtyFields.email ? 'valid' : ''}`}
+                                type="email"
+                                name="email"
+                                placeholder="Email ..."
+                                {...register("email", {
+                                    required: "Email is required!"
+                                    , pattern: {
+                                        value: /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i,
+                                        message: "Invalid Email!"
+                                    }
+                                })}
+                                onKeyUp={() => {
+                                    trigger("email");
+                                }}
+                            />
+                            {errors.email && <p className="errtext">{errors.email.message}</p>}
+                        </div>
+                        <div className={`form-group my-2 p-1`}>
+                            <input
+                                className={`form-control field ${errors.mobile ? 'Invalid' : dirtyFields.mobile ? 'valid' : ''}`}
+                                type="text"
+                                name="mobile"
+                                placeholder="Mobile Number ..."
+                                {...register("mobile", {
+                                    required: "MobileNumber is required!"
+                                    , minLength: {
+                                        value: 10, message: "Mobile number should be 10 digits!"
+                                    }, maxLength: {
+                                        value: 10, message: "Mobile number should be 10 digits!"
+                                    }
+                                })}
+                                onKeyUp={() => {
+                                    trigger("mobile");
+                                }}
+                            />
+                            {errors.mobile && <p className="errtext">{errors.mobile.message}</p>}
+                        </div>
+                        <div className="row p-3">
+                            <div className="col-xl-12">
+                                <div className="form-group mt-1">
+                                    <button className="form-control" type="submit" id="sub">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {Err.length !== 0 &&
+                    <p className="errtext">
+                        {Err}
+                    </p>
+                }
+                {
+                    Flg && 
+                    <p className='text-success'>
+                        Details updated successfully
+                    </p>
+                }
+            </form>
+        </div>
     );
 };
 

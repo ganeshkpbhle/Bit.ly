@@ -8,7 +8,7 @@ import GoogleButton from 'react-google-button';
 import { BeatLoader } from "react-spinners";
 function Login({ children }) {
     const navigate = useNavigate();
-    const { register, handleSubmit, formState: { errors }, trigger,reset } = useForm();
+    const { register, handleSubmit, formState: { errors }, trigger, reset } = useForm();
     const { logIn, setUser, googleSignIn, getUserBymail, addUser } = useAuth();
     const [Err, setErr] = useState("");
     const [pflg, setPflg] = useState(false);
@@ -44,15 +44,13 @@ function Login({ children }) {
                                 addUser(Prof)
                                     .then(() => {
                                         localStorage.clear();
-                                        setTimeout(() => {
-                                            logIn({ "Uemail": Gldata?.user.email, "Passwd": "$" })
-                                                .then(result => {
-                                                    setPflg(false);
-                                                    setUser(result?.data);
-                                                    localStorage.setItem('user', JSON.stringify(result));
-                                                    navigate("/home");
-                                                });
-                                        }, 500);
+                                        logIn({ "Uemail": Gldata?.user.email, "Passwd": "$" })
+                                            .then(result => {
+                                                setPflg(false);
+                                                setUser(result?.data);
+                                                localStorage.setItem('user', JSON.stringify(result));
+                                                navigate("/home");
+                                            });
                                     });
                             }
                             else {

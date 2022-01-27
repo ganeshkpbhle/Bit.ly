@@ -19,7 +19,6 @@ function Reg() {
                 .then((response) => {
                     if (response?.data.message===0) {
                         const Prof = {
-                            "GId":"NOT APPLICABLE",
                             "FirstName": data.firstName,
                             "LastName": data.lastName,
                             "Mobile": data.mobile,
@@ -42,6 +41,7 @@ function Reg() {
                 })
                 .catch((err) => {
                     setFlg(false);
+                    console.log(err?.message);
                     setErr("Some thing went wrong!");
                 });
     };

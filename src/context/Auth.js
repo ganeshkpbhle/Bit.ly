@@ -3,7 +3,6 @@ import {
     createUserWithEmailAndPassword,
     //signInWithEmailAndPassword,
    // signOut,
-    onAuthStateChanged,
     GoogleAuthProvider,
     signInWithPopup,
     sendPasswordResetEmail
@@ -84,7 +83,11 @@ export function Auth({ children }) {
         setHeader();
         return http.post(`${REACT_APP_API_URL}verify/post`,{Id:id});
     };
-    return <authContext.Provider value={{ User, logIn, setUser, googleSignIn, signUp, PasswdReset, verifyEmail, flg, setflg, addUser, updateUser, getUserBymail, addUrl, getUrlById, delUrl, getUrls, getUserSimple,vfcApi,REACT_APP_DICEBEAR,REACT_APP_LOCAL }}>
+    const ComputeDate=(user)=>{
+        setHeader();
+        return http.post(`${REACT_APP_API_URL}url/date`,user);
+    };
+    return <authContext.Provider value={{ User, logIn, setUser, googleSignIn, signUp, PasswdReset, verifyEmail, flg, setflg, addUser, updateUser, getUserBymail, addUrl, getUrlById, delUrl, getUrls, getUserSimple,vfcApi,REACT_APP_DICEBEAR,REACT_APP_LOCAL,ComputeDate }}>
         {children}
     </authContext.Provider>
 };
