@@ -9,6 +9,7 @@ import * as MdIcon from 'react-icons/md';
 import * as CgIcon from 'react-icons/cg';
 import * as FiIcon from 'react-icons/fi';
 import { IconContext } from 'react-icons';
+import jwt from 'jwt-decode';
 function Nav({ children }) {
     const { getUserSimple, User, setUser,REACT_APP_DICEBEAR } = useAuth();
     const [Err, setErr] = useState("");
@@ -26,7 +27,7 @@ function Nav({ children }) {
             timeout=setTimeout(() => {
                 alert("Session Expired pls login again !");
                 handleLogOut();
-            }, 1800000);
+            }, new Date((jwt(data?.token))?.exp*1000)-Date.now());
             getUserSimple(data?.id)
                 .then((response) => {
                     setProfilelogo(`${REACT_APP_DICEBEAR}${response?.data.email+response?.data.id}.svg`);

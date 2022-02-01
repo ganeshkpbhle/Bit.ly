@@ -8,15 +8,8 @@ import PassReset from "./components/PassReset";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { MainPage, Edit, Short, List } from "./components/Home";
 import Extract from './components/Extract';
-import http from "./config/http-common";
 import EmailVfc from "./components/EmailVfc";
 function App() {
-  // useEffect(()=>{
-  //   http.get("https://localhost:5001/api/user")
-  //   .then((data)=>{
-  //     console.log(data);
-  //   });
-  // },[]);
   return (
     <div className="App">
       <BrowserRouter>

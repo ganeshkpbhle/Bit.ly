@@ -1,13 +1,24 @@
 import React, { useEffect } from "react";
 import "../css/Page.css";
 import main from "../assets/img/main.jpg";
-import { useNavigate,Navigate } from 'react-router-dom';
-import Home from "./Home";
+import { useNavigate } from 'react-router-dom';
+import jwt from 'jwt-decode';
+import { useAuth } from '../context/Auth';
 const Page = () => {
   let navigate = useNavigate();
+  const { setUser }=useAuth();
   useEffect(()=>{
-    const localData=localStorage.getItem('user');
-    (localData)?navigate("/home"):navigate("/");
+    const localData=JSON.parse(localStorage.getItem('user'));
+    if(localData!==null){
+      console.log(jwt(localData?.data.token)?.exp);
+      if(Date.now()<=(jwt(localData?.data.token)?.exp)*1000){
+        navigate("/login");
+        localStorage.clear();
+        setUser({});
+        alert("Your Session Has Expired Pls login again !");
+      }
+    }
+    (localData!==null)?navigate("/home"):navigate("/");
   },[]);
   return (
     <div className="container">

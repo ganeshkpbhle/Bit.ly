@@ -25,15 +25,17 @@ export function MainPage({ children }) {
     const [Vfy, setVfy] = useState(false);
     const [pflg, setPflg] = useState(false);
     const [dataFeed, setFeed] = useState([]);
+    const [Opt,setOpt]=useState(1);
     useEffect(() => {
         dataFeed.length = 0;
-        ComputeDate({ "Id": user?.id, "Opt": 1 })
+        ComputeDate({ "Id": user?.id, Opt })
             .then((response) => {
+                console.log(response);
                 response?.data?.forEach(element => {
                     setFeed(prev => [...prev, element]);
                 });
             });
-    }, []);
+    }, [Opt]);
     const handleRefresh = () => {
         getUserSimple(user.id)
             .then((response) => {
@@ -43,12 +45,7 @@ export function MainPage({ children }) {
     };
     const handleSelect = (e) => {
         dataFeed.length = 0;
-        ComputeDate({ "Id": user?.id, "Opt": (e?.target.value==="month")?1:2 })
-            .then((response) => {
-                response?.data?.forEach(element => {
-                    setFeed(prev => [...prev, element]);
-                });
-            });
+        setOpt((e?.target.value==="month")?1:2);
     };
     return (<>
         {(User?.emailVerified === 0) &&
@@ -89,18 +86,18 @@ export function MainPage({ children }) {
         }
         <div className='d-flex flex-row bd-highlight justify-content-end my-2'>
             <div className='p-2 bd-highlight'>
-                <Form.Select onChange={handleSelect}>
+                <Form.Select onChange={handleSelect} value={(Opt===1)?"month":"week"}>
                     <option value="month">Month</option>
-                    <option value="week">Week</option>
+                    <option value="week">Last-7-Days</option>
                 </Form.Select>
             </div>
         </div>
         <div className='container'>
             <div className='row Chart my-5'>
-                <ResponsiveContainer aspect={4 / 1} width={1100}>
-                    <LineChart margin={{ top: 5, right: 0, left: 0, bottom: 5 }} data={dataFeed}>
+                <ResponsiveContainer aspect={2 / 1} width={1100}>
+                    <LineChart margin={{ top: 5, right: 0, left: 0, bottom:0 }} data={dataFeed}>
                         <XAxis dataKey="name" stroke='#5550bd' />
-                        <YAxis dataKey="active_Count" />
+                        <YAxis dataKey="active_Count"/>
                         <Line type="monotone" dataKey="active_Count" stroke='blue' />
                         <Tooltip />
                         <CartesianGrid stroke='white' />
@@ -210,30 +207,6 @@ export function List({ children }) {
             });
     };
     return (<>
-        {
-            /* {list?.length !== 0 &&
-                <div className='container custom-cont'>
-                    <div className='row'>
-                        <div className='col-xl-12'>
-                            {
-                                list.map(item => {
-                                    return (
-                                        <div className="card p-2 my-2 custom-card" key={item.urlId}>
-                                            <div className='card-body'>
-                                                <div className="d-flex flex-row bd-highlight justify-content-around m-0">
-                                                    <div className="px-5 bd-highlight"><Link className='custom-b' to={{ pathname: `/${item.urlId}` }} target="_blank">{"bit.ly/" + item.urlId}</Link></div>
-                                                    <div className="px-5 bd-highlight"><p>{item.createdDate?.replace('T', ' ')}</p></div>
-                                                    <div className="px-5 bd-highlight"><a className='btn btn-danger custom-a'>delete</a></div>
-                                                </div>
-                                            </div>
-                                        </div>);
-                                })
-                            }
-                        </div>
-                    </div>
-                </div>
-            } */
-        }
         {
             list?.map(item => {
                 return (
