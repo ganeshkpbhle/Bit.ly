@@ -2,19 +2,41 @@ import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../context/Auth';
 import { useForm } from 'react-hook-form';
-import { Link,useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import "../css/Home.css";
 import Nav from './Nav';
 import * as RiIcons from 'react-icons/ri';
 import * as FcIcons from 'react-icons/fc';
 import { BounceLoader } from "react-spinners";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { Form } from "react-bootstrap";
 function Home({ children }) {
+    const {getUserSimple,setUser} = useAuth();
+    const ustr = localStorage["user"];
+    const user = JSON.parse(ustr)?.data;
+    useEffect(()=>{
+        console.log("Component change");
+        getUserSimple(user.id)
+            .then((response) => {
+                setUser(response?.data);
+            });
+    },[]);
+    let path = "";
+    const COLORS = ['#9a3bd1', '#00C49F', '#8a9934', '#41ccbc', '#d66331', '#bf043f', '#d4aeba', '#FFBB28', '#FF8042', '#b35b46', '#6b2a2a', '#330332'];
     return (
-        <div>
-            <Nav />
-            <Outlet />
+        <div className='container-fluid'>
+            <div className='row'>
+                <div className='col'>
+                    <Nav />
+                </div>
+                {path = useLocation().pathname.slice(useLocation().pathname.lastIndexOf("/") + 1),
+                    <div className='row justify-content-center'>
+                        <div className={(path === "list") || (path.lastIndexOf("/") === path.length - 1) ? 'col-xl-6 col-lg-6 col-md-6 col-sm-6 col-6' : 'w-100'}>
+                            <Outlet />
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
     )
 };
@@ -25,17 +47,7 @@ export function MainPage({ children }) {
     const [Vfy, setVfy] = useState(false);
     const [pflg, setPflg] = useState(false);
     const [dataFeed, setFeed] = useState([]);
-    const [Opt,setOpt]=useState(1);
-    useEffect(() => {
-        dataFeed.length = 0;
-        ComputeDate({ "Id": user?.id, Opt })
-            .then((response) => {
-                console.log(response);
-                response?.data?.forEach(element => {
-                    setFeed(prev => [...prev, element]);
-                });
-            });
-    }, [Opt]);
+    const [Opt, setOpt] = useState(1);
     const handleRefresh = () => {
         getUserSimple(user.id)
             .then((response) => {
@@ -43,9 +55,22 @@ export function MainPage({ children }) {
                 setVfy(false);
             });
     };
+    useEffect(() => {
+        dataFeed.length = 0;
+        handleRefresh();
+        ComputeDate({ "Id": user?.id, Opt })
+            .then((response) => {
+                response?.data?.forEach(element => {
+                    setFeed(prev => [...prev, element]);
+                });
+            });
+        return()=>{
+            setFeed([]);
+        };
+    }, [Opt]);
     const handleSelect = (e) => {
         dataFeed.length = 0;
-        setOpt((e?.target.value==="month")?1:2);
+        setOpt((e?.target.value === "month") ? 1 : 2);
     };
     return (<>
         {(User?.emailVerified === 0) &&
@@ -86,7 +111,7 @@ export function MainPage({ children }) {
         }
         <div className='d-flex flex-row bd-highlight justify-content-end my-2'>
             <div className='p-2 bd-highlight'>
-                <Form.Select onChange={handleSelect} value={(Opt===1)?"month":"week"}>
+                <Form.Select onChange={handleSelect} value={(Opt === 1) ? "month" : "week"}>
                     <option value="month">Month</option>
                     <option value="week">Last-7-Days</option>
                 </Form.Select>
@@ -95,9 +120,9 @@ export function MainPage({ children }) {
         <div className='container'>
             <div className='row Chart my-5'>
                 <ResponsiveContainer aspect={2 / 1} width={1100}>
-                    <LineChart margin={{ top: 5, right: 0, left: 0, bottom:0 }} data={dataFeed}>
+                    <LineChart margin={{ top: 5, right: 0, left: 0, bottom: 0 }} data={dataFeed}>
                         <XAxis dataKey="name" stroke='#5550bd' />
-                        <YAxis dataKey="active_Count"/>
+                        <YAxis dataKey="active_Count" />
                         <Line type="monotone" dataKey="active_Count" stroke='blue' />
                         <Tooltip />
                         <CartesianGrid stroke='white' />
@@ -126,7 +151,7 @@ export function Short({ children }) {
         const UrlId = RandGen();
         const UserId = user?.id;
         const date = new Date();
-        const CreatedDate = date.toISOString().slice(0, 19);
+        const CreatedDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().slice(0, 19);
         const urlparam = { UrlId, "LongUrl": data?.url, UserId, CreatedDate };
         addUrl(urlparam)
             .then((response) => {
@@ -142,7 +167,7 @@ export function Short({ children }) {
         setCpy(true);
     };
     return (
-        <div className='container-fluid shadow mt-5 py-3 px-3 rounded'>
+        <div className='container shadow mt-5 py-3 px-3 rounded'>
             <div className='row'>
                 <form onSubmit={handleSubmit(Submit)} className='Box'>
                     <div className='form-group px-5 py-3'>
@@ -187,66 +212,112 @@ export function Short({ children }) {
         </div>
     );
 };
+export function List_Main({ children }) {
+    const { list } = useAuth();
+    const navigate = useNavigate();
+    const COLORS = ['#33FFE7', '#33FF89', '#FFBB28', '#7933FF', '#C70039', '#FF8042', '#035652', '#886119', '#FF33F3', '#E91A1A', '#FFFFFF', '#250505'];
+    const renderCard = (item, index) => {
+        return (
+            <div className='flex-item' key={index}>
+                <div className="card list-cards my-3" onClick={() => {
+                    navigate(`/home/list/${item?.name}`);
+                }}>
+                    <div className="card-body">
+                        <h5 className="card-title">{item?.name}</h5>
+                        <p className="card-text">{item?.count}</p>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+    return (
+        <>
+            {(list.length !== 0) &&
+                <>
+                    <div className='flex-cont bd-highlight my-2'>
+                        {
+                            list?.map((item, index) => {
+                                return (renderCard(item, index));
+                            })
+                        }
+                    </div>
+
+                    <div className='bd-highlight my-2'>
+                        <ResponsiveContainer minHeight={350} minWidth={350} width={"99%"}>
+                            <PieChart height={250}>
+                                <Legend
+                                    orientation="horizontal"
+                                    itemTextPosition="right"
+                                    horizontalAlignment="center"
+                                    verticalAlignment="bottom"
+                                    columnCount={3}
+                                />
+                                <Pie
+                                    data={list}
+                                    innerRadius={110}
+                                    outerRadius={130}
+                                    paddingAngle={5}
+                                    dataKey='count'
+                                >
+                                    {list.map((point, index) => (
+                                        <Cell
+                                            key={`cell-${index}`}
+                                            fill={COLORS[index % COLORS.length]}
+                                        />
+                                    ))}
+                                </Pie>
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                </>
+            }
+        </>
+    );
+}
 export function List({ children }) {
-    const { getUrls, delUrl } = useAuth();
-    const [list, setList] = useState([]);
+    const { getUrls, setList } = useAuth();
     const user = (JSON.parse(localStorage["user"]))?.data;
     useEffect(() => {
-        const methd = getUrls(user?.id)
+        getUrls(user?.id)
             .then((response) => {
                 setList(response?.data);
             });
-        return methd;
+        return () => {
+            setList([]);
+        };
     }, []);
-    const handleDelete = async (e) => {
-        const Id = e?.target.getAttribute("id");
-        setList(list.filter(element => element.urlId !== Id));
-        delUrl(Id)
-            ?.then((res) => {
-                console.log(res);
-            });
-    };
-    return (<>
-        {
-            list?.map(item => {
-                return (
-                    <div className="container custom-cont py-3 px-5 my-3 shadow-sm bg-white rounded" key={item.urlId}>
-                        <div className="row">
-                            <div className="col-xl-4"><Link className='custom-b' to={{ pathname: `/${item.urlId}` }} target="_blank">{"bit.ly/" + item.urlId}</Link></div>
-                            <div className="col-xl-5"><p>{item.createdDate?.replace('T', ' ')}</p></div>
-                            <div className="col-xl-3"><button className='btn btn-danger custom-a' id={item?.urlId} onClick={handleDelete}>delete</button></div>
-                        </div>
-                    </div>
-                );
-            })
-        }
-    </>);
+    return (
+        <>
+            <div className="d-inline-flex flex-column p-2 bd-highlight">
+                <Outlet />
+            </div>
+        </>
+    );
 };
 export function Edit({ children }) {
-    const { register, handleSubmit, formState: { errors, dirtyFields }, trigger,setValue } = useForm();
-    const { updateUser,User,setUser,getUserSimple} = useAuth();
-    const user=JSON.parse(localStorage['user'])?.data;
+    const { register, handleSubmit, formState: { errors, dirtyFields }, trigger, setValue } = useForm();
+    const { updateUser, User, setUser, getUserSimple } = useAuth();
+    const user = JSON.parse(localStorage['user'])?.data;
     const [Flg, setFlg] = useState(false);
     const [Err, setErr] = useState("");
-    const navigate = useNavigate();
-    useEffect(()=>{
+    useEffect(() => {
         getUserSimple(user?.id)
-        .then((response)=>{
-            const arr={ 'firstName':response?.data.firstName,'lastName':response?.data.lastName,'email':response?.data.email,'mobile':response?.data.mobile }
-            Object.keys(arr).forEach(element => {
-                setValue(element.toString(),arr[element],{shouldValidate:true});
+            .then((response) => {
+                const arr = { 'firstName': response?.data.firstName, 'lastName': response?.data.lastName, 'email': response?.data.email, 'mobile': response?.data.mobile }
+                Object.keys(arr).forEach(element => {
+                    setValue(element.toString(), arr[element], { shouldValidate: true });
+                });
             });
-        });
-    },[]);
-    const Submit = async (data,e) => {
+    }, []);
+    const Submit = async (data, e) => {
         e.preventDefault();
         setErr("");
-        updateUser(user?.id,{'Id':user?.id,'FirstName':data.firstName,'LastName':data.lastName,'Email':data.email,'Mobile':data.mobile})
-        .then((response)=>{
-            if(response?.data.update){
-                setFlg(true);
-            }
-        });
+        updateUser(user?.id, { 'Id': user?.id, 'FirstName': data.firstName, 'LastName': data.lastName, 'Email': data.email, 'Mobile': data.mobile })
+            .then((response) => {
+                if (response?.data.update) {
+                    setFlg(true);
+                }
+            });
 
     };
     return (
@@ -333,7 +404,7 @@ export function Edit({ children }) {
                     </p>
                 }
                 {
-                    Flg && 
+                    Flg &&
                     <p className='text-success'>
                         Details updated successfully
                     </p>

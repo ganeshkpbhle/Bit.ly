@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import {
     createUserWithEmailAndPassword,
     //signInWithEmailAndPassword,
-   // signOut,
+    // signOut,
     GoogleAuthProvider,
     signInWithPopup,
     sendPasswordResetEmail
@@ -10,13 +10,14 @@ import {
 import { auth } from '../config/firbaseconfig';
 import http from "../config/http-common";
 const authContext = createContext();
-const {REACT_APP_API_URL,REACT_APP_DICEBEAR,REACT_APP_LOCAL} =process.env;
+const { REACT_APP_API_URL, REACT_APP_DICEBEAR, REACT_APP_LOCAL } = process.env;
 export function Auth({ children }) {
     const [User, setUser] = useState({});
     const [flg, setflg] = useState(false);
-    const setHeader=()=>{
-        if(localStorage["user"]){
-            const data=JSON.parse(localStorage["user"])?.data;
+    const [list, setList] = useState([]);
+    const setHeader = () => {
+        if (localStorage["user"]) {
+            const data = JSON.parse(localStorage["user"])?.data;
             http.interceptors.request.use(
                 _config => {
                     _config.headers.authorization = `Bearer ${data?.token}`;
@@ -27,7 +28,7 @@ export function Auth({ children }) {
                 }
             );
         }
-        else {alert("You are an unAuthorized User");}
+        else { alert("You are an unAuthorized User"); }
     };
     // Google cred section Area
     const googleSignIn = () => {
@@ -53,6 +54,10 @@ export function Auth({ children }) {
     const logIn = (data) => {
         return http.post(`${REACT_APP_API_URL}user/login`, data);
     };
+    const logout = (id) => {
+        setHeader();
+        return http.post(`${REACT_APP_API_URL}user/logout`, { Del:parseInt(id) });
+    };
     const getUrlById = (id) => {
         setHeader();
         return http.get(`${REACT_APP_API_URL}url/getId/${id}`);
@@ -63,7 +68,7 @@ export function Auth({ children }) {
     };
     const delUrl = (id) => {
         setHeader();
-        http.delete(`${REACT_APP_API_URL}url/${id}`);
+        return http.delete(`${REACT_APP_API_URL}url/${id}`);
     };
     const addUser = (data) => {
         return http.post(`${REACT_APP_API_URL}user`, data);
@@ -79,15 +84,15 @@ export function Auth({ children }) {
         setHeader();
         return http.put(`${REACT_APP_API_URL}user/${id}`, data);
     };
-    const vfcApi=(id)=>{
+    const vfcApi = (id) => {
         setHeader();
-        return http.post(`${REACT_APP_API_URL}verify/post`,{Id:id});
+        return http.post(`${REACT_APP_API_URL}verify/post`, { Id: id });
     };
-    const ComputeDate=(user)=>{
+    const ComputeDate = (user) => {
         setHeader();
-        return http.post(`${REACT_APP_API_URL}url/date`,user);
+        return http.post(`${REACT_APP_API_URL}url/date`, user);
     };
-    return <authContext.Provider value={{ User, logIn, setUser, googleSignIn, signUp, PasswdReset, verifyEmail, flg, setflg, addUser, updateUser, getUserBymail, addUrl, getUrlById, delUrl, getUrls, getUserSimple,vfcApi,REACT_APP_DICEBEAR,REACT_APP_LOCAL,ComputeDate }}>
+    return <authContext.Provider value={{ User, logIn, logout, setUser, googleSignIn, signUp, PasswdReset, verifyEmail, flg, setflg, addUser, updateUser, getUserBymail, addUrl, getUrlById, delUrl, getUrls, getUserSimple, vfcApi, REACT_APP_DICEBEAR, REACT_APP_LOCAL, ComputeDate, list, setList }}>
         {children}
     </authContext.Provider>
 };

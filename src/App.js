@@ -6,9 +6,10 @@ import Login from './components/Login';
 import Vfc from './components/Vfc';
 import PassReset from "./components/PassReset";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { MainPage, Edit, Short, List } from "./components/Home";
+import { MainPage, Edit, Short, List,List_Main } from "./components/Home";
 import Extract from './components/Extract';
 import EmailVfc from "./components/EmailVfc";
+import Pop_urls from './components/Pop_urls';
 function App() {
   return (
     <div className="App">
@@ -23,7 +24,10 @@ function App() {
             <Route path='/home/' exact element={<Navigate to='/home/dash' />} />
             <Route path='/home/dash' exact element={<MainPage />} />
             <Route path='/home/edit' exact element={<Edit />} />
-            <Route path='/home/list' exact element={<List />} />
+            <Route path='/home/list' exact element={<List/>}>
+              <Route path='/home/list/' exact element={<List_Main/>}/>
+              <Route path='/home/list/:month' exact element={<Pop_urls/>} />
+            </Route>
             <Route path='/home/short' exact element={<Short />} />
           </Route>
           <Route path='/vfc/:Id' exact element={<EmailVfc />} />

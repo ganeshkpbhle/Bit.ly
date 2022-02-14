@@ -10,7 +10,6 @@ const Page = () => {
   useEffect(()=>{
     const localData=JSON.parse(localStorage.getItem('user'));
     if(localData!==null){
-      console.log(jwt(localData?.data.token)?.exp);
       if(Date.now()<=(jwt(localData?.data.token)?.exp)*1000){
         navigate("/login");
         localStorage.clear();

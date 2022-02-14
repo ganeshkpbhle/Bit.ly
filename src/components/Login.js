@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import "../css/Login.css";
 import logo from '../assets/img/single_user.png';
 import { useForm } from 'react-hook-form';
@@ -20,8 +20,20 @@ function Login({ children }) {
                 localStorage.setItem('user', JSON.stringify(response));
                 navigate("/home");
                 reset();
+            })
+            .catch(err =>{
+                if(err?.message.indexOf("409")!==-1){
+                    alert("User Already active in another device !");
+                    reset();
+                }
             });
     };
+    useEffect(()=>{
+        const data = localStorage.getItem('user');
+        if(data!==null){
+            navigate("/home/dash");
+        };
+    },[]);
     const handleGoogleLogin = async (e) => {
         e.preventDefault();
         try {

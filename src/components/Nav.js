@@ -11,26 +11,32 @@ import * as FiIcon from 'react-icons/fi';
 import { IconContext } from 'react-icons';
 import jwt from 'jwt-decode';
 function Nav({ children }) {
-    const { getUserSimple, User, setUser,REACT_APP_DICEBEAR } = useAuth();
+    const { getUserSimple, User, setUser, REACT_APP_DICEBEAR,logout } = useAuth();
     const [Err, setErr] = useState("");
-    var timeout=null;
     const handleLogOut = () => {
-        navigate("/login");
-        localStorage.clear();
-        clearTimeout(timeout);
-        setUser({});
+        console.log("User : "+JSON.stringify(User));
+        logout(User?.id)
+        .then((response)=>{
+            if(response?.data.logout===1){
+                navigate("/login");
+                localStorage.clear();
+                setUser({});
+            }
+        });
+
     };
-    const [profilelogo, setProfilelogo] = useState(`${REACT_APP_DICEBEAR}${User?.email+User?.id}.svg`);
+    const [profilelogo, setProfilelogo] = useState(`${REACT_APP_DICEBEAR}${User?.firstName+User?.lastName + User?.id}.svg`);
     useEffect(() => {
         const data = (JSON.parse(localStorage["user"]))?.data;
+        console.log("data : "+JSON.stringify(data));
         if (data?.token) {
-            timeout=setTimeout(() => {
+            setTimeout(() => {
                 alert("Session Expired pls login again !");
                 handleLogOut();
-            }, new Date((jwt(data?.token))?.exp*1000)-Date.now());
+            }, new Date((jwt(data?.token))?.exp * 1000) - new Date());
             getUserSimple(data?.id)
                 .then((response) => {
-                    setProfilelogo(`${REACT_APP_DICEBEAR}${response?.data.email+response?.data.id}.svg`);
+                    setProfilelogo(`${REACT_APP_DICEBEAR}${response?.data.firstName + response?.data.lastName + response?.data.id}.svg`);
                     setUser(response?.data);
                 })
                 .catch((err) => {
@@ -38,7 +44,7 @@ function Nav({ children }) {
                     console.log(err?.message);
                 });
         }
-    },[]);
+    }, []);
     const navigate = useNavigate();
     const [sidebar, setSidebar] = useState(false);
     const Side = () => {
@@ -79,14 +85,12 @@ function Nav({ children }) {
         }
     ];
     return (<>
-        <IconContext.Provider value={{ color: 'blue' }}>
-            <div className='container-fluid'>
-                <div className='row'>
+            <IconContext.Provider value={{ color: 'blue' }}>
                     <div className='navbar'>
                         <div className='d-flex bd-highlight'>
                             <Link to="#" onClick={Side}><Svg prof={profilelogo} /></Link>
                         </div>
-                        <div className='d-flex bd-highlight'>
+                        <div className='d-flex bd-highlight justify-self-center'>
                             <p className='icon'>Bit.ly</p>
                         </div>
                         <div className='d-flex bd-highlight'>
@@ -114,9 +118,7 @@ function Nav({ children }) {
                             }
                         </ul>
                     </nav>
-                </div>
-            </div>
-        </IconContext.Provider>
+                </IconContext.Provider>
     </>
     )
 }

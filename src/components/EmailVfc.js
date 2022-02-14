@@ -9,33 +9,43 @@ function EmailVfc() {
     useEffect(() => {
         const mthd = () => {
             getUserSimple(Id)
-            .then((response) => {
-                if (response?.data.emailVerified === 0) {
-                    setFlg(true);
-                    vfcApi(parseInt(Id))
-                        .then((result) => {
-                            if (result?.data.emailvfc) {
-                                setFlg(false);
-                            }
-                        });
-                }
-            });
+                .then((response) => {
+                    if (response?.data.emailVerified === 0) {
+                        setFlg(true);
+                        vfcApi(parseInt(Id))
+                            .then((result) => {
+                                if (result?.data.emailvfc) {
+                                    setFlg(false);
+                                }
+                            });
+                    }
+                });
         }
         return mthd();
     }, []);
     return (
-        <>
+        <div className='card text-center my-5'>
             {flg &&
-                <div>
-                    <BeatLoader loading size={35} />
-                </div>
+                <>
+                    <div class="card-header">
+                        Progress
+                    </div>
+                    <div className='card-body'>
+                        <BeatLoader loading size={35} />
+                    </div>
+                </>
             }
             {!flg &&
-                <div>
-                    <p className=''>Your Email has verified you can close the tab now!</p>
-                </div>
+                <>  
+                    <div class="card-header">
+                        Done
+                    </div>
+                    <div className='card-body'>
+                        <p className=''>Your Email has verified you can close the tab now!</p>
+                    </div>
+                </>
             }
-        </>
+        </div>
     );
 }
 
